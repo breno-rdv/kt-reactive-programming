@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Level 1 — Foundations</title>
+    <style>
+      :root { --bg:#020617; --panel:#0f172a; --line:#334155; --text:#e2e8f0; --accent:#38bdf8; }
+      * { box-sizing: border-box; }
+      body { margin:0; font-family: Arial, sans-serif; background:var(--bg); color:var(--text); }
+      .layout { display:grid; grid-template-columns:260px 1fr; min-height:100vh; }
+      aside { padding:24px; border-right:1px solid var(--line); background:#0b1220; }
+      aside button { width:100%; margin:0 0 10px; padding:12px; border-radius:12px; border:1px solid var(--line); background:#111827; color:var(--text); text-align:left; cursor:pointer; }
+      aside button.active { border-color:var(--accent); }
+      main { padding:28px; }
+      .slide { display:none; background:var(--panel); border:1px solid var(--line); border-radius:18px; padding:24px; max-width:900px; }
+      .slide.active { display:block; }
+      .card { background:#111827; border:1px solid var(--line); border-radius:14px; padding:16px; margin:16px 0; }
+      pre { background:#020617; border:1px solid var(--line); border-radius:12px; padding:14px; overflow:auto; white-space:pre-wrap; }
+      .controls { display:flex; justify-content:space-between; margin-top:20px; }
+      .controls button, .reveal { background:var(--accent); color:#082f49; border:none; border-radius:999px; padding:10px 14px; font-weight:bold; cursor:pointer; }
+      .hidden { display:none; }
+      @media (max-width: 900px) { .layout { grid-template-columns:1fr; } }
+    </style>
+  </head>
+  <body>
+    <div class="layout">
+      <aside>
+        <h1>Level 1</h1>
+        <p>Interactive GitHub Pages deck.</p>
+        <button class="active" data-slide="0">Observer Pattern</button>
+        <button data-slide="1">Iterator Pattern</button>
+        <button data-slide="2">Pull vs Push</button>
+        <button data-slide="3">Promises vs Observables</button>
+      </aside>
+      <main>
+        <section class="slide active">
+          <h2>Observer Pattern</h2>
+          <div class="card"><strong>Overview:</strong> one subject notifies many observers.</div>
+          <div class="card"><strong>Key Concepts:</strong> subject, observer, subscribe, unsubscribe, notify.</div>
+          <pre>Subject --> Observer A
+        --> Observer B
+        --> Observer C</pre>
+          <button class="reveal" data-target="code-1">Reveal code example</button>
+          <pre id="code-1" class="hidden">class Subject {
+  subscribe(observer) { /* TODO */ }
+  unsubscribe(observer) { /* TODO */ }
+  notify(value) { /* TODO */ }
+}</pre>
+          <div class="controls"><span></span><button data-next>Next</button></div>
+        </section>
+        <section class="slide">
+          <h2>Iterator Pattern</h2>
+          <div class="card"><strong>Overview:</strong> consumers pull values one at a time.</div>
+          <div class="card"><strong>Key Concepts:</strong> next(), done, value, [Symbol.iterator], laziness.</div>
+          <pre>Consumer --next()--> Iterator --returns--> { value, done }</pre>
+          <button class="reveal" data-target="code-2">Reveal code example</button>
+          <pre id="code-2" class="hidden">const range = {
+  [Symbol.iterator]() {
+    return { next() { /* TODO */ } };
+  }
+};</pre>
+          <div class="controls"><button data-prev>Previous</button><button data-next>Next</button></div>
+        </section>
+        <section class="slide">
+          <h2>Pull vs Push</h2>
+          <div class="card"><strong>Overview:</strong> who decides when data arrives?</div>
+          <table style="width:100%;border-collapse:collapse;">
+            <tr><th style="border:1px solid #334155;padding:10px;"></th><th style="border:1px solid #334155;padding:10px;">Single value</th><th style="border:1px solid #334155;padding:10px;">Multiple values</th></tr>
+            <tr><th style="border:1px solid #334155;padding:10px;">Pull</th><td style="border:1px solid #334155;padding:10px;">Function</td><td style="border:1px solid #334155;padding:10px;">Iterator</td></tr>
+            <tr><th style="border:1px solid #334155;padding:10px;">Push</th><td style="border:1px solid #334155;padding:10px;">Promise</td><td style="border:1px solid #334155;padding:10px;">Observable</td></tr>
+          </table>
+          <div class="controls"><button data-prev>Previous</button><button data-next>Next</button></div>
+        </section>
+        <section class="slide">
+          <h2>Promises vs Observables</h2>
+          <div class="card"><strong>Overview:</strong> one future value vs stream of values.</div>
+          <pre>Promise    -> eager, one value, no cancel
+Observable -> lazy, many values, unsubscribe</pre>
+          <button class="reveal" data-target="code-4">Reveal code example</button>
+          <pre id="code-4" class="hidden">const promise = new Promise((resolve) => resolve(1));
+const observable = { subscribe(observer) { /* TODO */ } };</pre>
+          <div class="controls"><button data-prev>Previous</button><span></span></div>
+        </section>
+      </main>
+    </div>
+    <script>
+      const slides = [...document.querySelectorAll('.slide')];
+      const navButtons = [...document.querySelectorAll('aside button[data-slide]')];
+      let current = 0;
+      const show = (index) => {
+        current = index;
+        slides.forEach((slide, i) => slide.classList.toggle('active', i === index));
+        navButtons.forEach((btn, i) => btn.classList.toggle('active', i === index));
+      };
+      navButtons.forEach((btn) => btn.addEventListener('click', () => show(Number(btn.dataset.slide))));
+      document.querySelectorAll('[data-next]').forEach((btn) => btn.addEventListener('click', () => show(Math.min(current + 1, slides.length - 1))));
+      document.querySelectorAll('[data-prev]').forEach((btn) => btn.addEventListener('click', () => show(Math.max(current - 1, 0))));
+      document.querySelectorAll('.reveal').forEach((btn) => btn.addEventListener('click', () => document.getElementById(btn.dataset.target).classList.toggle('hidden')));
+    </script>
+  </body>
+</html>

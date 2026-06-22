@@ -1,0 +1,20 @@
+{
+  "name": "kt-reactive-rxjs",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "RxJS Knowledge Transfer — Level 2",
+  "scripts": {
+    "demo:01": "node demos/01-first-observable.js",
+    "demo:02": "node demos/02-cold-vs-hot.js",
+    "demo:03": "node demos/03-creation-operators.js",
+    "demo:04": "node demos/04-transformation-operators.js",
+    "demo:05": "node demos/05-filtering-operators.js",
+    "demo:06": "node demos/06-combination-operators.js",
+    "demo:07": "node demos/07-error-handling.js",
+    "demo:08": "node demos/08-subjects.js",
+    "demo:09": "node demos/09-real-world-autocomplete.js"
+  },
+  "dependencies": {
+    "rxjs": "^7.8.0"
+  }
+}
