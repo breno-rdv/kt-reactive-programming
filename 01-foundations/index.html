@@ -1,102 +1,1197 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Level 1 — Foundations</title>
-    <style>
-      :root { --bg:#020617; --panel:#0f172a; --line:#334155; --text:#e2e8f0; --accent:#38bdf8; }
-      * { box-sizing: border-box; }
-      body { margin:0; font-family: Arial, sans-serif; background:var(--bg); color:var(--text); }
-      .layout { display:grid; grid-template-columns:260px 1fr; min-height:100vh; }
-      aside { padding:24px; border-right:1px solid var(--line); background:#0b1220; }
-      aside button { width:100%; margin:0 0 10px; padding:12px; border-radius:12px; border:1px solid var(--line); background:#111827; color:var(--text); text-align:left; cursor:pointer; }
-      aside button.active { border-color:var(--accent); }
-      main { padding:28px; }
-      .slide { display:none; background:var(--panel); border:1px solid var(--line); border-radius:18px; padding:24px; max-width:900px; }
-      .slide.active { display:block; }
-      .card { background:#111827; border:1px solid var(--line); border-radius:14px; padding:16px; margin:16px 0; }
-      pre { background:#020617; border:1px solid var(--line); border-radius:12px; padding:14px; overflow:auto; white-space:pre-wrap; }
-      .controls { display:flex; justify-content:space-between; margin-top:20px; }
-      .controls button, .reveal { background:var(--accent); color:#082f49; border:none; border-radius:999px; padding:10px 14px; font-weight:bold; cursor:pointer; }
-      .hidden { display:none; }
-      @media (max-width: 900px) { .layout { grid-template-columns:1fr; } }
-    </style>
-  </head>
-  <body>
-    <div class="layout">
-      <aside>
-        <h1>Level 1</h1>
-        <p>Interactive GitHub Pages deck.</p>
-        <button class="active" data-slide="0">Observer Pattern</button>
-        <button data-slide="1">Iterator Pattern</button>
-        <button data-slide="2">Pull vs Push</button>
-        <button data-slide="3">Promises vs Observables</button>
-      </aside>
-      <main>
-        <section class="slide active">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reactive Programming — Foundations</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/tokyo-night-dark.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/xml.min.js"></script>
+  <style>
+    :root {
+      --bg: #020617; --panel: #0f172a; --panel2: #111827;
+      --line: #1e293b; --line2: #334155;
+      --text: #e2e8f0; --muted: #94a3b8;
+      --accent: #38bdf8; --accent2: #818cf8;
+      --green: #34d399; --amber: #fbbf24; --red: #f87171; --pink: #f472b6;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+    /* Progress bar */
+    #progress { position: fixed; top: 0; left: 0; height: 3px; background: linear-gradient(90deg, var(--accent), var(--accent2)); transition: width 0.3s ease; z-index: 200; }
+
+    .layout { display: grid; grid-template-columns: 285px 1fr; min-height: 100vh; }
+
+    /* Sidebar */
+    aside {
+      padding: 24px 14px; border-right: 1px solid var(--line); background: #07101e;
+      position: sticky; top: 0; height: 100vh; overflow-y: auto;
+    }
+    .logo { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+    .logo span { color: var(--accent); }
+    aside h2 { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 20px; line-height: 1.4; }
+    .nav-sep { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin: 14px 0 4px 10px; }
+    nav button {
+      display: flex; align-items: flex-start; gap: 10px; width: 100%; padding: 9px 10px;
+      border-radius: 9px; border: none; background: transparent; color: var(--muted);
+      text-align: left; cursor: pointer; font-size: 12.5px; line-height: 1.4;
+      transition: background 0.15s, color 0.15s; margin-bottom: 2px;
+    }
+    nav button:hover { background: var(--line); color: var(--text); }
+    nav button.active { background: var(--line); color: var(--accent); font-weight: 600; }
+    .nav-num {
+      font-size: 10px; font-weight: 700; color: var(--muted); background: var(--line);
+      border-radius: 5px; padding: 2px 6px; min-width: 20px; text-align: center; flex-shrink: 0; margin-top: 1px;
+    }
+    nav button.active .nav-num { background: var(--accent); color: #082f49; }
+
+    /* Main */
+    main { padding: 40px 52px; overflow-y: auto; }
+    .slide { display: none; max-width: 860px; }
+    .slide.active { display: block; animation: fadeIn 0.2s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Slide header */
+    .slide-header { display: flex; align-items: flex-start; gap: 16px; margin-bottom: 28px; }
+    .slide-icon {
+      font-size: 28px; width: 52px; height: 52px; background: var(--panel); border: 1px solid var(--line2);
+      border-radius: 13px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .slide-meta { flex: 1; }
+    .badge {
+      display: inline-flex; align-items: center; gap: 4px; font-size: 10.5px; font-weight: 700;
+      padding: 3px 9px; border-radius: 999px; margin-bottom: 7px; letter-spacing: 0.04em;
+    }
+    .b-concept { background: #1e1b4b; color: var(--accent2); border: 1px solid #3730a3; }
+    .b-pattern { background: #052e16; color: var(--green); border: 1px solid #166534; }
+    .b-compare { background: #431407; color: var(--amber); border: 1px solid #92400e; }
+    .b-code    { background: #0c2340; color: var(--accent); border: 1px solid #1d4ed8; }
+    .b-api     { background: #2d1b69; color: var(--pink); border: 1px solid #7c3aed; }
+    .b-summary { background: #083344; color: var(--green); border: 1px solid #0e7490; }
+    .slide-meta h2 { font-size: 24px; font-weight: 800; color: var(--text); line-height: 1.2; }
+    .slide-meta p { font-size: 13.5px; color: var(--muted); margin-top: 4px; line-height: 1.5; }
+
+    /* Cards */
+    .card { background: var(--panel2); border: 1px solid var(--line2); border-radius: 13px; padding: 18px 20px; margin-bottom: 14px; }
+    .card-title { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 9px; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+
+    /* Code */
+    pre { border-radius: 11px; overflow: auto; margin: 0; font-size: 12.5px; line-height: 1.65; }
+    pre code.hljs { border-radius: 11px; padding: 16px 18px !important; }
+    .code-wrap { position: relative; margin-bottom: 14px; }
+    .code-label {
+      position: absolute; top: 9px; right: 13px; font-size: 10px; color: #4a5568;
+      font-weight: 700; z-index: 1; letter-spacing: 0.06em; text-transform: uppercase;
+    }
+
+    /* Comparison tables */
+    .ctable { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 14px; }
+    .ctable th {
+      background: var(--panel); color: var(--muted); font-size: 10.5px; font-weight: 700;
+      letter-spacing: 0.07em; text-transform: uppercase; padding: 9px 13px; text-align: left; border: 1px solid var(--line2);
+    }
+    .ctable td { padding: 9px 13px; border: 1px solid var(--line2); vertical-align: middle; font-size: 13px; }
+    .ctable tr:nth-child(even) td { background: #080e1c; }
+    .ck { color: var(--green); font-weight: 700; }
+    .cx { color: var(--red); font-weight: 700; }
+    .cw { color: var(--amber); }
+
+    /* Stream visualization */
+    .stream-box {
+      background: var(--bg); border: 1px solid var(--line2); border-radius: 11px;
+      padding: 18px 20px; margin-bottom: 14px; font-family: 'Fira Mono', 'Consolas', monospace;
+    }
+    .stream-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .stream-row:last-child { margin-bottom: 0; }
+    .s-label { font-size: 11px; color: var(--muted); width: 110px; flex-shrink: 0; font-weight: 600; }
+    .s-track { flex: 1; display: flex; align-items: center; gap: 0; position: relative; height: 32px; }
+    .s-line { position: absolute; top: 50%; left: 0; right: 0; height: 2px; background: var(--line2); transform: translateY(-50%); }
+    .s-events { position: relative; z-index: 1; display: flex; align-items: center; gap: 8px; width: 100%; }
+    .s-dot {
+      width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center;
+      justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; border: 2px solid transparent;
+    }
+    .sd-blue  { background: #0c2340; color: var(--accent); border-color: var(--accent); }
+    .sd-green { background: #052e16; color: var(--green); border-color: var(--green); }
+    .sd-amber { background: #431407; color: var(--amber); border-color: var(--amber); }
+    .sd-pink  { background: #500724; color: var(--pink); border-color: var(--pink); }
+    .sd-muted { background: var(--panel2); color: var(--muted); border-color: var(--line2); }
+    .s-spacer { flex: 1; }
+    .s-end { color: var(--muted); font-size: 18px; font-weight: 700; }
+    .s-err { color: var(--red); font-size: 16px; font-weight: 700; }
+    .s-gap { width: 20px; flex-shrink: 0; }
+    .s-arrow { color: var(--muted); font-size: 13px; }
+
+    /* Flow diagram */
+    .flow { display: flex; align-items: center; justify-content: flex-start; gap: 6px; flex-wrap: wrap; margin: 12px 0; }
+    .flow-box {
+      background: var(--panel2); border: 1px solid var(--line2); border-radius: 9px;
+      padding: 8px 14px; font-size: 12.5px; font-weight: 600; text-align: center;
+    }
+    .flow-arrow { color: var(--muted); font-size: 16px; }
+
+    /* Callout */
+    .callout { border-left: 3px solid var(--accent); background: #0a1b2e; border-radius: 0 11px 11px 0; padding: 13px 16px; font-size: 13.5px; line-height: 1.6; margin-bottom: 14px; }
+    .callout.green { border-color: var(--green); background: #071a0f; }
+    .callout.amber { border-color: var(--amber); background: #1a1000; }
+    .callout.red   { border-color: var(--red);   background: #190505; }
+    .callout strong { color: var(--accent); }
+    .callout.green strong { color: var(--green); }
+    .callout.amber strong { color: var(--amber); }
+
+    /* Lists */
+    ul.bul { list-style: none; padding: 0; margin: 0; }
+    ul.bul li { padding: 5px 0 5px 22px; position: relative; font-size: 13.5px; color: var(--text); line-height: 1.55; }
+    ul.bul li::before { content: '▸'; position: absolute; left: 0; color: var(--accent); font-size: 11px; top: 7px; }
+
+    /* Tag pills */
+    .pill { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 12px; font-weight: 600; margin: 2px; }
+    .p-blue  { background: #0c2340; color: var(--accent); }
+    .p-green { background: #052e16; color: var(--green); }
+    .p-amber { background: #431407; color: var(--amber); }
+    .p-red   { background: #190505; color: var(--red); }
+    .p-pink  { background: #2d0a3b; color: var(--pink); }
+
+    /* Navigation controls */
+    .controls { display: flex; justify-content: space-between; align-items: center; margin-top: 36px; padding-top: 18px; border-top: 1px solid var(--line); }
+    .ctrl { display: flex; align-items: center; gap: 7px; background: var(--panel2); border: 1px solid var(--line2); color: var(--text); border-radius: 9px; padding: 9px 18px; cursor: pointer; font-size: 13px; font-weight: 600; transition: background 0.15s, border-color 0.15s; }
+    .ctrl:hover { background: var(--line); border-color: var(--accent); color: var(--accent); }
+    .ctrl.primary { background: var(--accent); border-color: var(--accent); color: #082f49; }
+    .ctrl.primary:hover { background: #7dd3fc; }
+    .slide-counter { font-size: 12px; color: var(--muted); }
+
+    /* Operator badge in marble diagram */
+    .op-badge { display: inline-block; background: #1a103a; border: 1px solid var(--accent2); color: var(--accent2); border-radius: 6px; padding: 2px 8px; font-size: 11px; font-weight: 700; font-family: monospace; margin: 0 4px; }
+
+    @media (max-width: 920px) {
+      .layout { grid-template-columns: 1fr; }
+      aside { height: auto; position: relative; border-right: none; border-bottom: 1px solid var(--line); }
+      main { padding: 24px 18px; }
+      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div id="progress"></div>
+<div class="layout">
+
+  <!-- ═══ SIDEBAR ═══ -->
+  <aside>
+    <div class="logo">Reactive Programming · <span>KT</span></div>
+    <h2>Foundations Track</h2>
+
+    <div class="nav-sep">Core Concepts</div>
+    <nav>
+      <button class="active" data-slide="0">
+        <span class="nav-num">1</span>What is Reactive Programming?
+      </button>
+      <button data-slide="1">
+        <span class="nav-num">2</span>Why Reactive? The Problem
+      </button>
+    </nav>
+
+    <div class="nav-sep">Design Patterns</div>
+    <nav>
+      <button data-slide="2">
+        <span class="nav-num">3</span>Observer Pattern
+      </button>
+      <button data-slide="3">
+        <span class="nav-num">4</span>Iterator Pattern
+      </button>
+      <button data-slide="4">
+        <span class="nav-num">5</span>Pull vs Push
+      </button>
+    </nav>
+
+    <div class="nav-sep">Reactive in Practice</div>
+    <nav>
+      <button data-slide="5">
+        <span class="nav-num">6</span>Promises vs Observables
+      </button>
+      <button data-slide="6">
+        <span class="nav-num">7</span>RxJS + React — Live Search
+      </button>
+      <button data-slide="7">
+        <span class="nav-num">8</span>Spring WebFlux — REST API
+      </button>
+      <button data-slide="8">
+        <span class="nav-num">9</span>Summary & Key Takeaways
+      </button>
+    </nav>
+  </aside>
+
+  <!-- ═══ MAIN CONTENT ═══ -->
+  <main>
+
+    <!-- ══════════════════════════════════════════
+         SLIDE 0 — What is Reactive Programming?
+    ═══════════════════════════════════════════ -->
+    <section class="slide active" id="slide-0">
+      <div class="slide-header">
+        <div class="slide-icon">⚡</div>
+        <div class="slide-meta">
+          <div class="badge b-concept">CORE CONCEPT</div>
+          <h2>What is Reactive Programming?</h2>
+          <p>A paradigm built around <strong>asynchronous data streams</strong> and the <strong>propagation of change</strong>.</p>
+        </div>
+      </div>
+
+      <div class="callout">
+        <strong>Definition:</strong> Reactive programming is about building systems that <em>react</em> to events as they happen — instead of asking for data, you subscribe to streams and let the data come to you.
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">Everything is a Stream</div>
+          <ul class="bul">
+            <li>Mouse clicks &amp; keyboard input</li>
+            <li>HTTP responses &amp; WebSocket messages</li>
+            <li>Timer ticks &amp; intervals</li>
+            <li>State changes in your application</li>
+            <li>Database query results</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-title">The Reactive Manifesto</div>
+          <ul class="bul">
+            <li><span class="pill p-blue">Responsive</span> fast and consistent</li>
+            <li><span class="pill p-green">Resilient</span> stays alive on failure</li>
+            <li><span class="pill p-amber">Elastic</span> scales under load</li>
+            <li><span class="pill p-pink">Message-Driven</span> async boundaries</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Visualizing Streams Over Time</div>
+        <div class="stream-box">
+          <div class="stream-row">
+            <span class="s-label">clicks$</span>
+            <div class="s-track">
+              <div class="s-line"></div>
+              <div class="s-events">
+                <div class="s-dot sd-blue">c</div>
+                <div class="s-gap"></div><div class="s-gap"></div>
+                <div class="s-dot sd-blue">c</div>
+                <div class="s-gap"></div>
+                <div class="s-dot sd-blue">c</div>
+                <div class="s-spacer"></div>
+                <span class="s-arrow">──▶</span>
+              </div>
+            </div>
+          </div>
+          <div class="stream-row">
+            <span class="s-label">http$</span>
+            <div class="s-track">
+              <div class="s-line"></div>
+              <div class="s-events">
+                <div class="s-gap"></div><div class="s-gap"></div><div class="s-gap"></div>
+                <div class="s-dot sd-green">✓</div>
+                <div class="s-gap"></div><div class="s-gap"></div><div class="s-gap"></div>
+                <div class="s-dot sd-green">✓</div>
+                <div class="s-spacer"></div>
+                <span class="s-arrow">──▶</span>
+              </div>
+            </div>
+          </div>
+          <div class="stream-row">
+            <span class="s-label">timer$</span>
+            <div class="s-track">
+              <div class="s-line"></div>
+              <div class="s-events">
+                <div class="s-dot sd-amber">1</div>
+                <div class="s-dot sd-amber">2</div>
+                <div class="s-dot sd-amber">3</div>
+                <div class="s-dot sd-amber">4</div>
+                <div class="s-dot sd-amber">5</div>
+                <div class="s-spacer"></div>
+                <span class="s-arrow">──▶</span>
+              </div>
+            </div>
+          </div>
+          <div class="stream-row">
+            <span class="s-label">errors$</span>
+            <div class="s-track">
+              <div class="s-line"></div>
+              <div class="s-events">
+                <div class="s-gap"></div><div class="s-gap"></div>
+                <span class="s-err">✕</span>
+                <div class="s-gap"></div><div class="s-gap"></div><div class="s-gap"></div>
+                <span class="s-err">✕</span>
+                <div class="s-spacer"></div>
+                <span class="s-arrow">──▶</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p style="font-size:12px;color:var(--muted);">Each stream emits three kinds of events: <span class="pill p-blue">next(value)</span> <span class="pill p-red">error(err)</span> <span class="pill p-green">complete()</span></p>
+      </div>
+
+      <div class="callout green">
+        <strong>Mental model:</strong> Think of a spreadsheet. When cell A1 changes, cell B1 = A1 * 2 <em>automatically updates</em>. Reactive programming applies this same idea to all async data in your app.
+      </div>
+
+      <div class="controls">
+        <span></span>
+        <span class="slide-counter">1 / 9</span>
+        <button class="ctrl primary" data-next>Next →</button>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         SLIDE 1 — Why Reactive? The Problem
+    ═══════════════════════════════════════════ -->
+    <section class="slide" id="slide-1">
+      <div class="slide-header">
+        <div class="slide-icon">🔥</div>
+        <div class="slide-meta">
+          <div class="badge b-compare">WHY REACTIVE</div>
+          <h2>Why Reactive? The Problem</h2>
+          <p>Callbacks and Promises work — but they break down at scale and complexity.</p>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">😩 Callback Hell</div>
+          <div class="code-wrap">
+            <pre><code class="language-javascript">getUser(id, (err, user) => {
+  if (err) handleError(err);
+  getOrders(user.id, (err, orders) => {
+    if (err) handleError(err);
+    getProduct(orders[0].id, (err, product) => {
+      if (err) handleError(err);
+      // deeply nested, untestable,
+      // hard to read & maintain 😫
+    });
+  });
+});</code></pre>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">😐 Promises Help, But...</div>
+          <div class="code-wrap">
+            <pre><code class="language-javascript">getUser(id)
+  .then(user => getOrders(user.id))
+  .then(orders => getProduct(orders[0].id))
+  .then(product => display(product))
+  .catch(handleError);
+// Better! But still limited...
+// ❌ Only one value
+// ❌ Starts immediately (eager)
+// ❌ Cannot be cancelled
+// ❌ No backpressure control</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Promise Limitations at a Glance</div>
+        <table class="ctable">
+          <thead>
+            <tr>
+              <th>Scenario</th>
+              <th>Promise</th>
+              <th>Need</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>User types in a search box</td>
+              <td class="cx">❌ Single value</td>
+              <td>Stream of keystrokes over time</td>
+            </tr>
+            <tr>
+              <td>User navigates away from page</td>
+              <td class="cx">❌ Cannot cancel</td>
+              <td>Cancel in-flight HTTP request</td>
+            </tr>
+            <tr>
+              <td>Stock price ticker</td>
+              <td class="cx">❌ One-shot</td>
+              <td>Continuous stream of updates</td>
+            </tr>
+            <tr>
+              <td>WebSocket messages</td>
+              <td class="cx">❌ Not lazy</td>
+              <td>Subscribe / unsubscribe on demand</td>
+            </tr>
+            <tr>
+              <td>Compose 3 async operations</td>
+              <td class="cw">⚠️ Awkward chaining</td>
+              <td>Powerful composable operators</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout">
+        <strong>Observables fill the gap:</strong> lazy, cancellable, composable streams of zero-to-many values — all with built-in error handling and completion signals.
+      </div>
+
+      <div class="controls">
+        <button class="ctrl" data-prev>← Previous</button>
+        <span class="slide-counter">2 / 9</span>
+        <button class="ctrl primary" data-next>Next →</button>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         SLIDE 2 — Observer Pattern
+    ═══════════════════════════════════════════ -->
+    <section class="slide" id="slide-2">
+      <div class="slide-header">
+        <div class="slide-icon">👁️</div>
+        <div class="slide-meta">
+          <div class="badge b-pattern">DESIGN PATTERN — GoF</div>
           <h2>Observer Pattern</h2>
-          <div class="card"><strong>Overview:</strong> one subject notifies many observers.</div>
-          <div class="card"><strong>Key Concepts:</strong> subject, observer, subscribe, unsubscribe, notify.</div>
-          <pre>Subject --> Observer A
-        --> Observer B
-        --> Observer C</pre>
-          <button class="reveal" data-target="code-1">Reveal code example</button>
-          <pre id="code-1" class="hidden">class Subject {
-  subscribe(observer) { /* TODO */ }
-  unsubscribe(observer) { /* TODO */ }
-  notify(value) { /* TODO */ }
-}</pre>
-          <div class="controls"><span></span><button data-next>Next</button></div>
-        </section>
-        <section class="slide">
-          <h2>Iterator Pattern</h2>
-          <div class="card"><strong>Overview:</strong> consumers pull values one at a time.</div>
-          <div class="card"><strong>Key Concepts:</strong> next(), done, value, [Symbol.iterator], laziness.</div>
-          <pre>Consumer --next()--> Iterator --returns--> { value, done }</pre>
-          <button class="reveal" data-target="code-2">Reveal code example</button>
-          <pre id="code-2" class="hidden">const range = {
-  [Symbol.iterator]() {
-    return { next() { /* TODO */ } };
+          <p>One subject maintains a list of observers and notifies them automatically when state changes.</p>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">Structure</div>
+          <div class="stream-box" style="font-size:12px;line-height:2;">
+            <div style="text-align:center;margin-bottom:8px;">
+              <span style="background:var(--panel2);border:1px solid var(--accent);border-radius:8px;padding:6px 18px;color:var(--accent);font-weight:700;">Subject</span>
+            </div>
+            <div style="text-align:center;color:var(--muted);font-size:11px;margin-bottom:8px;">subscribe() · unsubscribe() · notify()</div>
+            <div style="display:flex;justify-content:center;gap:8px;">
+              <span style="background:var(--panel2);border:1px solid var(--line2);border-radius:8px;padding:5px 12px;font-size:11px;">Observer A</span>
+              <span style="background:var(--panel2);border:1px solid var(--line2);border-radius:8px;padding:5px 12px;font-size:11px;">Observer B</span>
+              <span style="background:var(--panel2);border:1px solid var(--line2);border-radius:8px;padding:5px 12px;font-size:11px;">Observer C</span>
+            </div>
+          </div>
+          <ul class="bul">
+            <li><strong>Subject</strong> — holds the list of observers</li>
+            <li><strong>Observer</strong> — reacts to notifications</li>
+            <li><strong>subscribe()</strong> — opt in to updates</li>
+            <li><strong>unsubscribe()</strong> — opt out (prevent leaks!)</li>
+            <li>Loose coupling — subject doesn't know observers</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-title">Real-world examples</div>
+          <ul class="bul">
+            <li><span class="pill p-blue">DOM</span> addEventListener / removeEventListener</li>
+            <li><span class="pill p-green">React</span> useEffect with event listeners</li>
+            <li><span class="pill p-amber">Node.js</span> EventEmitter</li>
+            <li><span class="pill p-pink">RxJS</span> Observable.subscribe()</li>
+            <li><span class="pill p-blue">Vue</span> watch / watchEffect</li>
+          </ul>
+          <div class="callout" style="margin-top:14px;">
+            <strong>This is the backbone of Reactive Programming.</strong> Observables are the Observer Pattern taken to its logical extreme — a standardized, composable, cancellable push stream.
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Implementation — JavaScript</div>
+        <div class="code-wrap">
+          <span class="code-label">JavaScript</span>
+          <pre><code class="language-javascript">class Subject {
+  constructor() {
+    this.observers = new Set();
   }
-};</pre>
-          <div class="controls"><button data-prev>Previous</button><button data-next>Next</button></div>
-        </section>
-        <section class="slide">
-          <h2>Pull vs Push</h2>
-          <div class="card"><strong>Overview:</strong> who decides when data arrives?</div>
-          <table style="width:100%;border-collapse:collapse;">
-            <tr><th style="border:1px solid #334155;padding:10px;"></th><th style="border:1px solid #334155;padding:10px;">Single value</th><th style="border:1px solid #334155;padding:10px;">Multiple values</th></tr>
-            <tr><th style="border:1px solid #334155;padding:10px;">Pull</th><td style="border:1px solid #334155;padding:10px;">Function</td><td style="border:1px solid #334155;padding:10px;">Iterator</td></tr>
-            <tr><th style="border:1px solid #334155;padding:10px;">Push</th><td style="border:1px solid #334155;padding:10px;">Promise</td><td style="border:1px solid #334155;padding:10px;">Observable</td></tr>
+
+  subscribe(observer) {
+    this.observers.add(observer);
+    return () => this.observers.delete(observer); // returns unsubscribe fn
+  }
+
+  notify(value) {
+    this.observers.forEach(obs => obs(value));
+  }
+}
+
+// Usage
+const subject = new Subject();
+
+const unsubA = subject.subscribe(v => console.log('Observer A:', v));
+const unsubB = subject.subscribe(v => console.log('Observer B:', v));
+
+subject.notify('hello');   // Observer A: hello  |  Observer B: hello
+unsubA();                  // A unsubscribes
+subject.notify('world');   // Observer B: world  (A no longer notified)</code></pre>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button class="ctrl" data-prev>← Previous</button>
+        <span class="slide-counter">3 / 9</span>
+        <button class="ctrl primary" data-next>Next →</button>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         SLIDE 3 — Iterator Pattern
+    ═══════════════════════════════════════════ -->
+    <section class="slide" id="slide-3">
+      <div class="slide-header">
+        <div class="slide-icon">🔄</div>
+        <div class="slide-meta">
+          <div class="badge b-pattern">DESIGN PATTERN — GoF</div>
+          <h2>Iterator Pattern</h2>
+          <p>Provides a way to access elements of a collection sequentially without exposing its internals.</p>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">How It Works</div>
+          <div class="flow">
+            <div class="flow-box" style="color:var(--accent)">Consumer</div>
+            <span class="flow-arrow">──next()──▶</span>
+            <div class="flow-box" style="color:var(--green)">Iterator</div>
+            <span class="flow-arrow">──▶</span>
+            <div class="flow-box" style="font-family:monospace;font-size:11px">{ value, done }</div>
+          </div>
+          <ul class="bul" style="margin-top:8px;">
+            <li><strong>Consumer controls</strong> when to pull next value</li>
+            <li><code style="font-size:12px;color:var(--amber)">next()</code> returns <code style="font-size:12px;color:var(--amber)">{ value, done }</code></li>
+            <li>Hides the collection's internal structure</li>
+            <li>Often <strong>lazy</strong> — only computes when asked</li>
+            <li><code style="font-size:12px;color:var(--accent)">[Symbol.iterator]</code> makes any object iterable in JS</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-title">Observer vs Iterator</div>
+          <table class="ctable">
+            <thead>
+              <tr><th></th><th>Observer</th><th>Iterator</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Direction</td><td class="ck">Push</td><td>Pull</td></tr>
+              <tr><td>Who controls timing</td><td>Producer</td><td class="ck">Consumer</td></tr>
+              <tr><td>Lazy by default</td><td class="cx">❌</td><td class="ck">✅</td></tr>
+              <tr><td>Async support</td><td class="ck">✅</td><td class="cx">❌</td></tr>
+            </tbody>
           </table>
-          <div class="controls"><button data-prev>Previous</button><button data-next>Next</button></div>
-        </section>
-        <section class="slide">
+          <p style="font-size:12px;color:var(--muted);margin-top:6px;">Observable = Observer + Iterator merged into one push-based lazy stream.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Implementation — JavaScript</div>
+        <div class="code-wrap">
+          <span class="code-label">JavaScript</span>
+          <pre><code class="language-javascript">// Custom iterable — pull-based, lazy range
+const range = {
+  [Symbol.iterator]() {
+    let current = 1, end = 3;
+    return {
+      next() {
+        return current <= end
+          ? { value: current++, done: false }
+          : { value: undefined, done: true };
+      }
+    };
+  }
+};
+
+for (const n of range) {
+  console.log(n); // 1, 2, 3
+}
+
+// Generator syntax — the modern shortcut
+function* numbers(start, end) {
+  for (let i = start; i <= end; i++) {
+    yield i; // pauses here until consumer calls next()
+  }
+}
+
+console.log([...numbers(1, 5)]); // [1, 2, 3, 4, 5]</code></pre>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button class="ctrl" data-prev>← Previous</button>
+        <span class="slide-counter">4 / 9</span>
+        <button class="ctrl primary" data-next>Next →</button>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         SLIDE 4 — Pull vs Push
+    ═══════════════════════════════════════════ -->
+    <section class="slide" id="slide-4">
+      <div class="slide-header">
+        <div class="slide-icon">↔️</div>
+        <div class="slide-meta">
+          <div class="badge b-concept">CORE CONCEPT</div>
+          <h2>Pull vs Push</h2>
+          <p>The fundamental question: <em>who decides when data arrives?</em></p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">The 2 × 2 Model</div>
+        <table class="ctable">
+          <thead>
+            <tr>
+              <th></th>
+              <th>Single value</th>
+              <th>Multiple values</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Pull</strong> — Consumer controls</td>
+              <td><span class="pill p-green">Function</span><br><span style="font-size:12px;color:var(--muted)">const x = getValue()</span></td>
+              <td><span class="pill p-green">Iterator</span><br><span style="font-size:12px;color:var(--muted)">for (const n of range) …</span></td>
+            </tr>
+            <tr>
+              <td><strong>Push</strong> — Producer controls</td>
+              <td><span class="pill p-blue">Promise</span><br><span style="font-size:12px;color:var(--muted)">fetch('/api').then(…)</span></td>
+              <td><span class="pill p-pink">Observable</span><br><span style="font-size:12px;color:var(--muted)">fromEvent(btn, 'click').pipe(…)</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">Pull — Consumer Decides</div>
+          <div class="code-wrap">
+            <span class="code-label">JavaScript</span>
+            <pre><code class="language-javascript">// Pull: I ask, I get
+const value = getTemperature(); // sync function
+
+// Pull: I iterate when I want
+for (const item of database.findAll()) {
+  process(item); // consumer controls pace
+}</code></pre>
+          </div>
+          <ul class="bul">
+            <li>Synchronous by nature</li>
+            <li>Consumer drives the flow</li>
+            <li>Easy to reason about</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-title">Push — Producer Decides</div>
+          <div class="code-wrap">
+            <span class="code-label">JavaScript</span>
+            <pre><code class="language-javascript">// Push: it notifies me when ready
+fetch('/api/data').then(data => {
+  handle(data); // arrives when it's ready
+});
+
+// Push: events arrive on their own schedule
+fromEvent(window, 'resize').subscribe(e => {
+  updateLayout(e); // producer decides timing
+});</code></pre>
+          </div>
+          <ul class="bul">
+            <li>Inherently asynchronous</li>
+            <li>Producer drives the flow</li>
+            <li>Natural for events &amp; I/O</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="callout amber">
+        <strong>Key insight:</strong> Reactive programming is about <em>embracing push</em>. Instead of polling or asking repeatedly, you subscribe once and let data flow to you — enabling more efficient, responsive systems.
+      </div>
+
+      <div class="controls">
+        <button class="ctrl" data-prev>← Previous</button>
+        <span class="slide-counter">5 / 9</span>
+        <button class="ctrl primary" data-next>Next →</button>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         SLIDE 5 — Promises vs Observables
+    ═══════════════════════════════════════════ -->
+    <section class="slide" id="slide-5">
+      <div class="slide-header">
+        <div class="slide-icon">⚖️</div>
+        <div class="slide-meta">
+          <div class="badge b-compare">COMPARISON</div>
           <h2>Promises vs Observables</h2>
-          <div class="card"><strong>Overview:</strong> one future value vs stream of values.</div>
-          <pre>Promise    -> eager, one value, no cancel
-Observable -> lazy, many values, unsubscribe</pre>
-          <button class="reveal" data-target="code-4">Reveal code example</button>
-          <pre id="code-4" class="hidden">const promise = new Promise((resolve) => resolve(1));
-const observable = { subscribe(observer) { /* TODO */ } };</pre>
-          <div class="controls"><button data-prev>Previous</button><span></span></div>
-        </section>
-      </main>
-    </div>
-    <script>
-      const slides = [...document.querySelectorAll('.slide')];
-      const navButtons = [...document.querySelectorAll('aside button[data-slide]')];
-      let current = 0;
-      const show = (index) => {
-        current = index;
-        slides.forEach((slide, i) => slide.classList.toggle('active', i === index));
-        navButtons.forEach((btn, i) => btn.classList.toggle('active', i === index));
-      };
-      navButtons.forEach((btn) => btn.addEventListener('click', () => show(Number(btn.dataset.slide))));
-      document.querySelectorAll('[data-next]').forEach((btn) => btn.addEventListener('click', () => show(Math.min(current + 1, slides.length - 1))));
-      document.querySelectorAll('[data-prev]').forEach((btn) => btn.addEventListener('click', () => show(Math.max(current - 1, 0))));
-      document.querySelectorAll('.reveal').forEach((btn) => btn.addEventListener('click', () => document.getElementById(btn.dataset.target).classList.toggle('hidden')));
-    </script>
-  </body>
+          <p>Why Observables are a strict superset — and when each one wins.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Feature Comparison</div>
+        <table class="ctable">
+          <thead>
+            <tr><th>Feature</th><th>Promise</th><th>Observable</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Values emitted</td><td>Single</td><td class="ck">✅ Zero to many (stream)</td></tr>
+            <tr><td>Execution</td><td class="cx">❌ Eager (starts immediately)</td><td class="ck">✅ Lazy (starts on subscribe)</td></tr>
+            <tr><td>Cancellable</td><td class="cx">❌ No</td><td class="ck">✅ Yes — unsubscribe()</td></tr>
+            <tr><td>Synchronous possible</td><td class="cx">❌ Always async</td><td class="ck">✅ Can be sync or async</td></tr>
+            <tr><td>Error handling</td><td>.catch(fn)</td><td class="ck">catchError() + retry(n)</td></tr>
+            <tr><td>Composition</td><td>.then() chaining</td><td class="ck">pipe() + 100+ operators</td></tr>
+            <tr><td>Retry logic</td><td>Manual (recursive)</td><td class="ck">retry(3) / retryWhen()</td></tr>
+            <tr><td>Multicast</td><td>All share one result</td><td class="ck">Subjects, share(), publish()</td></tr>
+            <tr><td>Backpressure</td><td class="cx">❌ None</td><td class="ck">✅ throttle / debounce / buffer</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">Promise — when it fits well</div>
+          <div class="code-wrap">
+            <span class="code-label">JavaScript</span>
+            <pre><code class="language-javascript">// ✅ Great for: one-shot async operations
+const user = await fetch('/api/user')
+  .then(r => r.json());
+
+// Simple, readable, widely understood
+const [users, posts] = await Promise.all([
+  fetchUsers(),
+  fetchPosts()
+]);</code></pre>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">Observable — where it shines</div>
+          <div class="code-wrap">
+            <span class="code-label">JavaScript</span>
+            <pre><code class="language-javascript">// ✅ Great for: streams, events, composition
+const search$ = fromEvent(input, 'input').pipe(
+  map(e => e.target.value),
+  debounceTime(300),     // wait for pause in typing
+  distinctUntilChanged(), // skip repeated values
+  switchMap(q => searchApi(q)), // cancel stale calls
+  retry(2),              // retry on error
+  catchError(() => of([]))  // fallback on failure
+);
+
+const sub = search$.subscribe(setResults);
+// cleanup: sub.unsubscribe();</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout green">
+        <strong>Rule of thumb:</strong> Use a Promise for "get me one thing once." Use an Observable for "give me things as they happen — and let me control the flow."
+      </div>
+
+      <div class="controls">
+        <button class="ctrl" data-prev>← Previous</button>
+        <span class="slide-counter">6 / 9</span>
+        <button class="ctrl primary" data-next>Next →</button>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         SLIDE 6 — RxJS + React — Live Search
+    ═══════════════════════════════════════════ -->
+    <section class="slide" id="slide-6">
+      <div class="slide-header">
+        <div class="slide-icon">⚛️</div>
+        <div class="slide-meta">
+          <div class="badge b-code">RXJS + REACT</div>
+          <h2>RxJS + React — Live Search</h2>
+          <p>A real-world autocomplete that combines debouncing, deduplication, and stale-request cancellation.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Operator Pipeline — What Each Step Does</div>
+        <div class="flow" style="flex-wrap:wrap;gap:4px;">
+          <div class="flow-box" style="color:var(--accent);font-size:12px;">fromEvent<br><span style="color:var(--muted);font-size:10px;">keystroke stream</span></div>
+          <span class="flow-arrow">▶</span>
+          <div class="flow-box" style="font-size:12px;"><span class="op-badge">map</span><br><span style="color:var(--muted);font-size:10px;">extract value</span></div>
+          <span class="flow-arrow">▶</span>
+          <div class="flow-box" style="font-size:12px;"><span class="op-badge">debounceTime(300)</span><br><span style="color:var(--muted);font-size:10px;">wait for pause</span></div>
+          <span class="flow-arrow">▶</span>
+          <div class="flow-box" style="font-size:12px;"><span class="op-badge">distinctUntilChanged</span><br><span style="color:var(--muted);font-size:10px;">skip duplicates</span></div>
+          <span class="flow-arrow">▶</span>
+          <div class="flow-box" style="font-size:12px;"><span class="op-badge">switchMap</span><br><span style="color:var(--muted);font-size:10px;">cancel stale, start new</span></div>
+          <span class="flow-arrow">▶</span>
+          <div class="flow-box" style="color:var(--green);font-size:12px;">subscribe<br><span style="color:var(--muted);font-size:10px;">update UI</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">React Component</div>
+        <div class="code-wrap">
+          <span class="code-label">TypeScript · React</span>
+          <pre><code class="language-javascript">import { useEffect, useRef, useState } from 'react';
+import { fromEvent } from 'rxjs';
+import { map, debounceTime, distinctUntilChanged, switchMap, catchError } from 'rxjs/operators';
+import { from, of } from 'rxjs';
+
+interface Result { id: string; name: string; }
+
+export function LiveSearch() {
+  const [results, setResults] = useState&lt;Result[]&gt;([]);
+  const [loading, setLoading] = useState(false);
+  const inputRef = useRef&lt;HTMLInputElement&gt;(null);
+
+  useEffect(() => {
+    const input = inputRef.current!;
+
+    const subscription = fromEvent&lt;InputEvent&gt;(input, 'input')
+      .pipe(
+        map(e =&gt; (e.target as HTMLInputElement).value.trim()),
+        debounceTime(300),          // wait 300ms after last keystroke
+        distinctUntilChanged(),     // ignore if same query as before
+        switchMap(query =&gt; {        // cancel previous request!
+          if (!query) return of([]);
+          setLoading(true);
+          return from(
+            fetch(`/api/search?q=${query}`).then(r =&gt; r.json())
+          ).pipe(
+            catchError(() =&gt; of([]))  // fallback on error
+          );
+        })
+      )
+      .subscribe(data =&gt; {
+        setResults(data);
+        setLoading(false);
+      });
+
+    return () =&gt; subscription.unsubscribe(); // ← cleanup prevents memory leaks
+  }, []);
+
+  return (
+    &lt;div&gt;
+      &lt;input ref={inputRef} placeholder="Search..." /&gt;
+      {loading &amp;&amp; &lt;span&gt;Searching...&lt;/span&gt;}
+      &lt;ul&gt;
+        {results.map(r =&gt; &lt;li key={r.id}&gt;{r.name}&lt;/li&gt;)}
+      &lt;/ul&gt;
+    &lt;/div&gt;
+  );
+}</code></pre>
+        </div>
+      </div>
+
+      <div class="grid-3">
+        <div class="card">
+          <div class="card-title">debounceTime(300)</div>
+          <p style="font-size:13px;color:var(--muted);">Only fires after 300ms of silence. Prevents spamming the API with every single keystroke.</p>
+        </div>
+        <div class="card">
+          <div class="card-title">distinctUntilChanged</div>
+          <p style="font-size:13px;color:var(--muted);">Skips if query hasn't changed. Avoids duplicate network requests for the same term.</p>
+        </div>
+        <div class="card">
+          <div class="card-title">switchMap</div>
+          <p style="font-size:13px;color:var(--muted);">Cancels the previous in-flight request when a new query arrives. No stale results!</p>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button class="ctrl" data-prev>← Previous</button>
+        <span class="slide-counter">7 / 9</span>
+        <button class="ctrl primary" data-next>Next →</button>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         SLIDE 7 — Spring WebFlux REST API
+    ═══════════════════════════════════════════ -->
+    <section class="slide" id="slide-7">
+      <div class="slide-header">
+        <div class="slide-icon">☕</div>
+        <div class="slide-meta">
+          <div class="badge b-api">SPRING WEBFLUX</div>
+          <h2>Spring WebFlux — REST API</h2>
+          <p>Reactive types <code style="color:var(--accent)">Mono&lt;T&gt;</code> and <code style="color:var(--pink)">Flux&lt;T&gt;</code> replace blocking calls with a fully non-blocking pipeline.</p>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">Mono&lt;T&gt; — Zero or One Value</div>
+          <ul class="bul">
+            <li>The reactive equivalent of a <strong>Promise</strong></li>
+            <li>0 or 1 async result</li>
+            <li>Used for: find-by-id, create, update, delete</li>
+          </ul>
+          <div class="stream-box" style="margin-top:12px;">
+            <div class="stream-row">
+              <span class="s-label" style="width:60px;">Mono</span>
+              <div class="s-track">
+                <div class="s-line"></div>
+                <div class="s-events">
+                  <div class="s-gap"></div><div class="s-gap"></div>
+                  <div class="s-dot sd-blue">T</div>
+                  <div class="s-gap"></div>
+                  <span class="s-end">|</span>
+                  <div class="s-spacer"></div>
+                </div>
+              </div>
+            </div>
+            <div class="stream-row">
+              <span class="s-label" style="width:60px;">Mono.empty</span>
+              <div class="s-track">
+                <div class="s-line"></div>
+                <div class="s-events">
+                  <div class="s-gap"></div><div class="s-gap"></div><div class="s-gap"></div>
+                  <span class="s-end">|</span>
+                  <div class="s-spacer"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">Flux&lt;T&gt; — Zero to N Values</div>
+          <ul class="bul">
+            <li>The reactive equivalent of an <strong>Observable</strong></li>
+            <li>0 to ∞ async results</li>
+            <li>Used for: list all, streaming SSE, WebSocket</li>
+          </ul>
+          <div class="stream-box" style="margin-top:12px;">
+            <div class="stream-row">
+              <span class="s-label" style="width:60px;">Flux</span>
+              <div class="s-track">
+                <div class="s-line"></div>
+                <div class="s-events">
+                  <div class="s-dot sd-green">1</div>
+                  <div class="s-dot sd-green">2</div>
+                  <div class="s-dot sd-green">3</div>
+                  <div class="s-gap"></div>
+                  <span class="s-end">|</span>
+                  <div class="s-spacer"></div>
+                </div>
+              </div>
+            </div>
+            <div class="stream-row">
+              <span class="s-label" style="width:60px;">Flux SSE</span>
+              <div class="s-track">
+                <div class="s-line"></div>
+                <div class="s-events">
+                  <div class="s-dot sd-amber">1</div>
+                  <div class="s-dot sd-amber">2</div>
+                  <div class="s-dot sd-amber">3</div>
+                  <div class="s-dot sd-amber">4</div>
+                  <div class="s-dot sd-amber">…</div>
+                  <div class="s-spacer"></div>
+                  <span class="s-arrow">──▶</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">ProductController — from this project</div>
+        <div class="code-wrap">
+          <span class="code-label">Java · Spring WebFlux</span>
+          <pre><code class="language-java">@RestController
+@RequestMapping("/products")
+public class ProductController {
+
+    // Mono&lt;T&gt; = 0 or 1 result — equivalent to Promise
+    @GetMapping("/{id}")
+    public Mono&lt;Product&gt; getById(@PathVariable String id) {
+        return Mono.justOrEmpty(products.get(id));
+        // returns 404 automatically if empty
+    }
+
+    // Flux&lt;T&gt; = 0..N results — equivalent to Observable
+    @GetMapping
+    public Flux&lt;Product&gt; getAll() {
+        return Flux.fromIterable(products.values());
+    }
+
+    // Server-Sent Events — stream data to the browser in real time
+    @GetMapping(value = "/stream",
+                produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public Flux&lt;Product&gt; streamProducts() {
+        return productRepository.findAll()
+            .delayElements(Duration.ofMillis(200)); // emit one every 200ms
+    }
+
+    // Accept a reactive body — no blocking deserialization
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public Mono&lt;Product&gt; create(@RequestBody Mono&lt;Product&gt; body) {
+        return body.map(product -&gt; {
+            products.put(product.id(), product);
+            return product;
+        });
+    }
+}</code></pre>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">😴 Blocking (Spring MVC)</div>
+          <div class="code-wrap" style="margin-bottom:0;">
+            <pre><code class="language-java">// Thread-per-request model
+// Thread A: request → wait for DB → response
+// Thread B: request → wait for DB → response
+// Thread C: request → wait for DB → response
+// ...
+// Under load: thread pool exhausted → 503s</code></pre>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">⚡ Non-Blocking (WebFlux)</div>
+          <div class="code-wrap" style="margin-bottom:0;">
+            <pre><code class="language-java">// Event-loop model (like Node.js)
+// Few threads handle thousands of requests
+// Thread is freed while waiting for I/O
+// Results delivered via callbacks/reactive pipelines
+// Handles 10x more concurrent connections</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button class="ctrl" data-prev>← Previous</button>
+        <span class="slide-counter">8 / 9</span>
+        <button class="ctrl primary" data-next>Next →</button>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         SLIDE 8 — Summary
+    ═══════════════════════════════════════════ -->
+    <section class="slide" id="slide-8">
+      <div class="slide-header">
+        <div class="slide-icon">🗺️</div>
+        <div class="slide-meta">
+          <div class="badge b-summary">SUMMARY</div>
+          <h2>Summary &amp; Key Takeaways</h2>
+          <p>Everything connects — from GoF patterns to production-grade reactive APIs.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">The Concept Map</div>
+        <div class="stream-box" style="font-size:12.5px;">
+          <div style="display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:8px;align-items:center;">
+            <div style="text-align:center;">
+              <div style="background:var(--panel2);border:1px solid var(--line2);border-radius:10px;padding:10px 8px;margin-bottom:6px;">
+                <div style="color:var(--green);font-weight:700;margin-bottom:4px;">Design Patterns</div>
+                <div style="font-size:11px;color:var(--muted);">Observer Pattern</div>
+                <div style="font-size:11px;color:var(--muted);">Iterator Pattern</div>
+                <div style="font-size:11px;color:var(--muted);">Pull vs Push</div>
+              </div>
+            </div>
+            <div style="color:var(--muted);font-size:20px;text-align:center;">▶</div>
+            <div style="text-align:center;">
+              <div style="background:var(--panel2);border:1px solid var(--line2);border-radius:10px;padding:10px 8px;margin-bottom:6px;">
+                <div style="color:var(--accent);font-weight:700;margin-bottom:4px;">Reactive Library</div>
+                <div style="font-size:11px;color:var(--muted);">Observable / Flux</div>
+                <div style="font-size:11px;color:var(--muted);">Operators: map, filter</div>
+                <div style="font-size:11px;color:var(--muted);">switchMap, debounce</div>
+              </div>
+            </div>
+            <div style="color:var(--muted);font-size:20px;text-align:center;">▶</div>
+            <div style="text-align:center;">
+              <div style="background:var(--panel2);border:1px solid var(--line2);border-radius:10px;padding:10px 8px;margin-bottom:6px;">
+                <div style="color:var(--pink);font-weight:700;margin-bottom:4px;">Production</div>
+                <div style="font-size:11px;color:var(--muted);">RxJS + React UI</div>
+                <div style="font-size:11px;color:var(--muted);">Spring WebFlux API</div>
+                <div style="font-size:11px;color:var(--muted);">SSE / WebSocket</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">What You Learned</div>
+          <ul class="bul">
+            <li><strong>Reactive Programming</strong> — streams + propagation of change</li>
+            <li><strong>Observer Pattern</strong> — one subject, many observers (GoF)</li>
+            <li><strong>Iterator Pattern</strong> — pull-based lazy sequences (GoF)</li>
+            <li><strong>Pull vs Push</strong> — who controls when data arrives</li>
+            <li><strong>Observable advantages</strong> — lazy, cancellable, composable</li>
+            <li><strong>RxJS + React</strong> — debounce, switchMap, cleanup</li>
+            <li><strong>WebFlux</strong> — Mono&lt;T&gt;, Flux&lt;T&gt;, non-blocking I/O</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-title">When to Reach for Reactive</div>
+          <ul class="bul">
+            <li>Real-time data: chats, dashboards, live feeds</li>
+            <li>User input handling: search, autocomplete, drag</li>
+            <li>High-concurrency APIs: many simultaneous users</li>
+            <li>Event-driven microservices &amp; messaging</li>
+            <li>WebSocket / SSE streams</li>
+            <li>Complex async workflows with retries &amp; fallbacks</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">📚 Continue Learning</div>
+        <div class="grid-3" style="margin-bottom:0;">
+          <div>
+            <div style="font-weight:700;font-size:13px;margin-bottom:6px;color:var(--accent)">RxJS</div>
+            <ul class="bul" style="font-size:12px;">
+              <li><a href="https://rxjs.dev" target="_blank" style="color:var(--accent)">rxjs.dev</a></li>
+              <li><a href="https://reactivex.io" target="_blank" style="color:var(--accent)">reactivex.io</a></li>
+            </ul>
+          </div>
+          <div>
+            <div style="font-weight:700;font-size:13px;margin-bottom:6px;color:var(--pink)">WebFlux</div>
+            <ul class="bul" style="font-size:12px;">
+              <li><a href="https://projectreactor.io" target="_blank" style="color:var(--pink)">projectreactor.io</a></li>
+              <li><a href="https://spring.io/reactive" target="_blank" style="color:var(--pink)">spring.io/reactive</a></li>
+            </ul>
+          </div>
+          <div>
+            <div style="font-weight:700;font-size:13px;margin-bottom:6px;color:var(--green)">Manifesto</div>
+            <ul class="bul" style="font-size:12px;">
+              <li><a href="https://www.reactivemanifesto.org" target="_blank" style="color:var(--green)">reactivemanifesto.org</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button class="ctrl" data-prev>← Previous</button>
+        <span class="slide-counter">9 / 9</span>
+        <button class="ctrl" onclick="show(0)">↩ Back to Start</button>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+  const SLIDE_COUNT = 9;
+  const slides = [...document.querySelectorAll('.slide')];
+  const navBtns = [...document.querySelectorAll('nav button[data-slide]')];
+  let current = 0;
+
+  function show(index) {
+    current = Math.max(0, Math.min(index, SLIDE_COUNT - 1));
+    slides.forEach((s, i) => s.classList.toggle('active', i === current));
+    navBtns.forEach((b, i) => b.classList.toggle('active', i === current));
+    document.getElementById('progress').style.width = ((current + 1) / SLIDE_COUNT * 100) + '%';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  navBtns.forEach((btn, i) => btn.setAttribute('data-slide', i));
+  navBtns.forEach((btn) => btn.addEventListener('click', () => show(Number(btn.dataset.slide))));
+  document.querySelectorAll('[data-next]').forEach(b => b.addEventListener('click', () => show(current + 1)));
+  document.querySelectorAll('[data-prev]').forEach(b => b.addEventListener('click', () => show(current - 1)));
+
+  // Keyboard navigation
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') show(current + 1);
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   show(current - 1);
+  });
+
+  // Init highlight.js
+  document.addEventListener('DOMContentLoaded', () => hljs.highlightAll());
+  show(0);
+</script>
+</body>
 </html>

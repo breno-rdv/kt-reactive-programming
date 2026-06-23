@@ -3,20 +3,90 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Reactive Programming KT</title>
+    <title>Reactive Programming — Knowledge Transfer</title>
     <style>
-      body { font-family: Arial, sans-serif; margin: 0; background: #0f172a; color: #e2e8f0; }
-      main { max-width: 900px; margin: 0 auto; padding: 48px 24px; }
-      .card { background: #111827; border: 1px solid #334155; border-radius: 16px; padding: 24px; }
-      a { color: #7dd3fc; }
+      :root { --bg:#020617; --panel:#0f172a; --panel2:#111827; --line:#1e293b; --line2:#334155; --text:#e2e8f0; --muted:#94a3b8; --accent:#38bdf8; --green:#34d399; --amber:#fbbf24; --pink:#f472b6; }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; align-items: flex-start; justify-content: center; padding: 60px 24px; }
+      main { width: 100%; max-width: 820px; }
+      .hero { text-align: center; margin-bottom: 52px; }
+      .hero .tag { display: inline-block; background: #0c2340; border: 1px solid #1d4ed8; color: var(--accent); font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 4px 14px; border-radius: 999px; margin-bottom: 18px; }
+      .hero h1 { font-size: 38px; font-weight: 900; line-height: 1.15; margin-bottom: 12px; }
+      .hero h1 span { color: var(--accent); }
+      .hero p { font-size: 15px; color: var(--muted); line-height: 1.6; max-width: 540px; margin: 0 auto; }
+      .modules { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-bottom: 40px; }
+      .module { background: var(--panel2); border: 1px solid var(--line2); border-radius: 16px; padding: 24px; text-decoration: none; display: block; transition: border-color 0.18s, transform 0.18s; }
+      .module:hover { border-color: var(--accent); transform: translateY(-3px); }
+      .mod-icon { font-size: 28px; margin-bottom: 12px; }
+      .mod-level { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 8px; }
+      .mod-level.l1 { color: var(--green); }
+      .mod-level.l2 { color: var(--amber); }
+      .mod-level.l3 { color: var(--pink); }
+      .mod-title { font-size: 16px; font-weight: 800; color: var(--text); margin-bottom: 8px; }
+      .mod-desc { font-size: 12.5px; color: var(--muted); line-height: 1.55; margin-bottom: 14px; }
+      .mod-tags { display: flex; flex-wrap: wrap; gap: 5px; }
+      .tag-sm { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 6px; }
+      .t-js  { background: #2a1e00; color: var(--amber); }
+      .t-ts  { background: #0c2340; color: var(--accent); }
+      .t-java { background: #2d1b69; color: var(--pink); }
+      .path { background: var(--panel); border: 1px solid var(--line2); border-radius: 14px; padding: 24px 28px; text-align: center; }
+      .path h2 { font-size: 14px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 16px; }
+      .path-row { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; }
+      .path-step { background: var(--panel2); border: 1px solid var(--line2); border-radius: 10px; padding: 10px 18px; font-size: 13px; font-weight: 600; }
+      .path-arrow { color: var(--muted); font-size: 18px; }
+      @media (max-width: 700px) { .modules { grid-template-columns: 1fr; } .hero h1 { font-size: 28px; } }
     </style>
   </head>
   <body>
     <main>
-      <div class="card">
-        <h1>Reactive Programming Knowledge Transfer</h1>
-        <p>Open the interactive Level 1 presentation:</p>
-        <p><a href="./01-foundations/index.html">01-foundations/index.html</a></p>
+      <div class="hero">
+        <div class="tag">Knowledge Transfer</div>
+        <h1>Reactive <span>Programming</span></h1>
+        <p>A progressive, hands-on curriculum — from GoF design patterns to production-grade reactive APIs.</p>
+      </div>
+
+      <div class="modules">
+        <a class="module" href="./01-foundations/index.html">
+          <div class="mod-icon">⚡</div>
+          <div class="mod-level l1">01 · Beginner</div>
+          <div class="mod-title">Foundations</div>
+          <div class="mod-desc">What is reactive programming, design patterns (Observer, Iterator), Pull vs Push, Promises vs Observables, RxJS + React, WebFlux.</div>
+          <div class="mod-tags">
+            <span class="tag-sm t-js">JavaScript</span>
+            <span class="tag-sm t-ts">TypeScript</span>
+            <span class="tag-sm t-java">Java</span>
+          </div>
+        </a>
+        <a class="module" href="./02-rxjs/index.html">
+          <div class="mod-icon">🔀</div>
+          <div class="mod-level l2">02 · Intermediate</div>
+          <div class="mod-title">RxJS In Depth</div>
+          <div class="mod-desc">Cold vs Hot Observables, operator landscape, mergeMap vs switchMap vs concatMap, error handling, Subjects, and real-world patterns.</div>
+          <div class="mod-tags">
+            <span class="tag-sm t-js">JavaScript</span>
+            <span class="tag-sm t-ts">TypeScript</span>
+          </div>
+        </a>
+        <a class="module" href="./03-webflux/index.html">
+          <div class="mod-icon">☕</div>
+          <div class="mod-level l3">03 · Advanced</div>
+          <div class="mod-title">Spring WebFlux</div>
+          <div class="mod-desc">Mono &amp; Flux, backpressure, schedulers, reactive REST APIs, WebSocket endpoints, StepVerifier testing.</div>
+          <div class="mod-tags">
+            <span class="tag-sm t-java">Java</span>
+          </div>
+        </a>
+      </div>
+
+      <div class="path">
+        <h2>Learning Path</h2>
+        <div class="path-row">
+          <div class="path-step">⚡ Foundations</div>
+          <span class="path-arrow">→</span>
+          <div class="path-step">🔀 RxJS</div>
+          <span class="path-arrow">→</span>
+          <div class="path-step">☕ WebFlux</div>
+        </div>
       </div>
     </main>
   </body>
