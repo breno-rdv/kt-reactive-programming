@@ -2,6 +2,7 @@
  * Demo 01: creating a custom Observable, showing laziness,
  * next/error/complete notifications, and early unsubscribe.
  */
+// TODO: understand the teardown logic and how it works with multiple subscribers
 import { Observable } from 'rxjs';
 
 console.log('\n=== Demo 01: First Observable ===');
