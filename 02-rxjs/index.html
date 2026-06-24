@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reactive Programming — RxJS</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/tokyo-night-dark.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <style>
+    :root {
+      --bg: #020617; --panel: #0f172a; --panel2: #111827;
+      --line: #1e293b; --line2: #334155;
+      --text: #e2e8f0; --muted: #94a3b8;
+      --accent: #38bdf8; --accent2: #818cf8;
+      --green: #34d399; --amber: #fbbf24; --red: #f87171; --pink: #f472b6;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+    #progress { position: fixed; top: 0; left: 0; height: 3px; background: linear-gradient(90deg, var(--accent), var(--accent2)); transition: width 0.3s ease; z-index: 200; }
+    .layout { display: grid; grid-template-columns: 285px 1fr; min-height: 100vh; }
+    aside { padding: 24px 14px; border-right: 1px solid var(--line); background: #07101e; position: sticky; top: 0; height: 100vh; overflow-y: auto; display: flex; flex-direction: column; }
+    .logo { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+    .logo span { color: var(--accent); }
+    aside h2 { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 20px; line-height: 1.4; }
+    .nav-sep { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin: 14px 0 4px 10px; }
+    nav button { display: flex; align-items: flex-start; gap: 10px; width: 100%; padding: 9px 10px; border-radius: 9px; border: none; background: transparent; color: var(--muted); text-align: left; cursor: pointer; font-size: 12.5px; line-height: 1.4; transition: background 0.15s, color 0.15s; margin-bottom: 2px; }
+    nav button:hover { background: var(--line); color: var(--text); }
+    nav button.active { background: var(--line); color: var(--accent); font-weight: 600; }
+    .nav-num { font-size: 10px; font-weight: 700; color: var(--muted); background: var(--line); border-radius: 5px; padding: 2px 6px; min-width: 20px; text-align: center; flex-shrink: 0; margin-top: 1px; }
+    nav button.active .nav-num { background: var(--accent); color: #082f49; }
+    .aside-footer { margin-top: auto; padding-top: 16px; border-top: 1px solid var(--line); }
+    .aside-footer a { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 12px; text-decoration: none; padding: 8px 10px; border-radius: 8px; transition: background 0.15s; }
+    .aside-footer a:hover { background: var(--line); color: var(--text); }
+    main { padding: 40px 52px; overflow-y: auto; }
+    .slide { display: none; max-width: 860px; }
+    .slide.active { display: block; animation: fadeIn 0.2s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+    .slide-header { display: flex; align-items: flex-start; gap: 16px; margin-bottom: 28px; }
+    .slide-icon { font-size: 28px; width: 52px; height: 52px; background: var(--panel); border: 1px solid var(--line2); border-radius: 13px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .slide-meta { flex: 1; }
+    .badge { display: inline-flex; align-items: center; font-size: 10.5px; font-weight: 700; padding: 3px 9px; border-radius: 999px; margin-bottom: 7px; letter-spacing: 0.04em; }
+    .b-concept { background: #1e1b4b; color: var(--accent2); border: 1px solid #3730a3; }
+    .b-code    { background: #0c2340; color: var(--accent); border: 1px solid #1d4ed8; }
+    .b-compare { background: #431407; color: var(--amber); border: 1px solid #92400e; }
+    .b-pattern { background: #052e16; color: var(--green); border: 1px solid #166534; }
+    .b-summary { background: #083344; color: var(--green); border: 1px solid #0e7490; }
+    .slide-meta h2 { font-size: 24px; font-weight: 800; color: var(--text); line-height: 1.2; }
+    .slide-meta p { font-size: 13.5px; color: var(--muted); margin-top: 4px; line-height: 1.5; }
+    .card { background: var(--panel2); border: 1px solid var(--line2); border-radius: 13px; padding: 18px 20px; margin-bottom: 14px; }
+    .card-title { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 9px; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+    pre { border-radius: 11px; overflow: auto; margin: 0; font-size: 12.5px; line-height: 1.65; }
+    pre code.hljs { border-radius: 11px; padding: 16px 18px !important; }
+    .code-wrap { position: relative; margin-bottom: 14px; }
+    .code-label { position: absolute; top: 9px; right: 13px; font-size: 10px; color: #4a5568; font-weight: 700; z-index: 1; letter-spacing: 0.06em; text-transform: uppercase; }
+    .ctable { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 14px; }
+    .ctable th { background: var(--panel); color: var(--muted); font-size: 10.5px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; padding: 9px 13px; text-align: left; border: 1px solid var(--line2); }
+    .ctable td { padding: 9px 13px; border: 1px solid var(--line2); vertical-align: middle; font-size: 13px; }
+    .ctable tr:nth-child(even) td { background: #080e1c; }
+    .ck { color: var(--green); font-weight: 700; }
+    .cx { color: var(--red); font-weight: 700; }
+    .stream-box { background: var(--bg); border: 1px solid var(--line2); border-radius: 11px; padding: 18px 20px; margin-bottom: 14px; }
+    .stream-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .stream-row:last-child { margin-bottom: 0; }
+    .s-label { font-size: 11px; color: var(--muted); width: 120px; flex-shrink: 0; font-weight: 600; font-family: monospace; }
+    .s-track { flex: 1; display: flex; align-items: center; position: relative; height: 32px; }
+    .s-line { position: absolute; top: 50%; left: 0; right: 0; height: 2px; background: var(--line2); transform: translateY(-50%); }
+    .s-events { position: relative; z-index: 1; display: flex; align-items: center; gap: 8px; width: 100%; }
+    .s-dot { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; border: 2px solid transparent; }
+    .sd-blue  { background: #0c2340; color: var(--accent); border-color: var(--accent); }
+    .sd-green { background: #052e16; color: var(--green); border-color: var(--green); }
+    .sd-amber { background: #431407; color: var(--amber); border-color: var(--amber); }
+    .sd-pink  { background: #500724; color: var(--pink); border-color: var(--pink); }
+    .sd-muted { background: var(--panel2); color: var(--muted); border-color: var(--line2); }
+    .s-spacer { flex: 1; }
+    .s-end { color: var(--muted); font-size: 18px; font-weight: 700; }
+    .s-err { color: var(--red); font-size: 16px; font-weight: 700; }
+    .s-gap { width: 20px; flex-shrink: 0; }
+    .s-arrow { color: var(--muted); font-size: 13px; }
+    .callout { border-left: 3px solid var(--accent); background: #0a1b2e; border-radius: 0 11px 11px 0; padding: 13px 16px; font-size: 13.5px; line-height: 1.6; margin-bottom: 14px; }
+    .callout.green { border-color: var(--green); background: #071a0f; }
+    .callout.amber { border-color: var(--amber); background: #1a1000; }
+    .callout strong { color: var(--accent); }
+    .callout.green strong { color: var(--green); }
+    .callout.amber strong { color: var(--amber); }
+    ul.bul { list-style: none; padding: 0; margin: 0; }
+    ul.bul li { padding: 5px 0 5px 22px; position: relative; font-size: 13.5px; color: var(--text); line-height: 1.55; }
+    ul.bul li::before { content: '▸'; position: absolute; left: 0; color: var(--accent); font-size: 11px; top: 7px; }
+    .pill { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 12px; font-weight: 600; margin: 2px; }
+    .p-blue  { background: #0c2340; color: var(--accent); }
+    .p-green { background: #052e16; color: var(--green); }
+    .p-amber { background: #431407; color: var(--amber); }
+    .p-red   { background: #190505; color: var(--red); }
+    .op-badge { display: inline-block; background: #1a103a; border: 1px solid var(--accent2); color: var(--accent2); border-radius: 6px; padding: 2px 8px; font-size: 11px; font-weight: 700; font-family: monospace; margin: 0 3px; }
+    .flow { display: flex; align-items: center; justify-content: flex-start; gap: 6px; flex-wrap: wrap; margin: 12px 0; }
+    .flow-box { background: var(--panel2); border: 1px solid var(--line2); border-radius: 9px; padding: 8px 14px; font-size: 12.5px; font-weight: 600; text-align: center; }
+    .flow-arrow { color: var(--muted); font-size: 16px; }
+    .controls { display: flex; justify-content: space-between; align-items: center; margin-top: 36px; padding-top: 18px; border-top: 1px solid var(--line); }
+    .ctrl { display: flex; align-items: center; gap: 7px; background: var(--panel2); border: 1px solid var(--line2); color: var(--text); border-radius: 9px; padding: 9px 18px; cursor: pointer; font-size: 13px; font-weight: 600; transition: background 0.15s, border-color 0.15s; }
+    .ctrl:hover { background: var(--line); border-color: var(--accent); color: var(--accent); }
+    .ctrl.primary { background: var(--accent); border-color: var(--accent); color: #082f49; }
+    .ctrl.primary:hover { background: #7dd3fc; }
+    .slide-counter { font-size: 12px; color: var(--muted); }
+    @media (max-width: 920px) { .layout { grid-template-columns: 1fr; } aside { height: auto; position: relative; } main { padding: 24px 18px; } .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+<div id="progress"></div>
+<div class="layout">
+
+  <aside>
+    <div class="logo">Reactive Programming · <span>KT</span></div>
+    <h2>RxJS · Module 02</h2>
+
+    <div class="nav-sep">Core Concepts</div>
+    <nav>
+      <button class="active" data-slide="0"><span class="nav-num">1</span>Intro to RxJS</button>
+      <button data-slide="1"><span class="nav-num">2</span>Cold vs Hot Observables</button>
+    </nav>
+
+    <div class="nav-sep">Operators</div>
+    <nav>
+      <button data-slide="2"><span class="nav-num">3</span>Key Operators</button>
+      <button data-slide="3"><span class="nav-num">4</span>Flattening Operators</button>
+    </nav>
+
+    <div class="nav-sep">Real World</div>
+    <nav>
+      <button data-slide="4"><span class="nav-num">5</span>RxJS + React — Live Search</button>
+      <button data-slide="5"><span class="nav-num">6</span>Summary</button>
+    </nav>
+
+    <div class="aside-footer">
+      <a href="../index.html">← All Modules</a>
+      <a href="../01-foundations/index.html">‹ Module 01: Foundations</a>
+      <a href="../03-webflux/index.html">Module 03: WebFlux ›</a>
+    </div>
+  </aside>
+
+  <main>
+
+    <!-- ══════════════════════════════════════════
+         SLIDE 0 — Intro to RxJS
+    ═══════════════════════════════════════════ -->
+    <section class="slide active" id="slide-0">
+      <div class="slide-header">
+        <div class="slide-icon">🔀</div>
+        <div class="slide-meta">
+          <div class="badge b-concept">INTRO</div>
+          <h2>Intro to RxJS</h2>
+          <p>The JavaScript implementation of ReactiveX — Observable streams, powerful operators, and a clean composable API.</p>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">What is RxJS?</div>
+          <ul class="bul">
+            <li><strong>ReactiveX for JavaScript</strong> — part of the ReactiveX family (RxJava, Rx.NET, RxSwift…)</li>
+            <li>Observer Pattern + Iterator Protocol + functional operators</li>
+            <li>One Observable handles: events, HTTP, timers, state</li>
+            <li>Powers Angular's HTTP client, NgRx, and more</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-title">Observable Contract</div>
+          <ul class="bul">
+            <li><span class="pill p-blue">next(value)</span> — emit a value</li>
+            <li><span class="pill p-red">error(err)</span> — terminal failure</li>
+            <li><span class="pill p-green">complete()</span> — terminal success</li>
+          </ul>
+          <p style="font-size:12px;color:var(--muted);margin-top:10px;">Rules: zero or more <code>next</code>, then either one <code>error</code> or one <code>complete</code>. Nothing after terminal signals.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Reading Marble Diagrams</div>
+        <div class="stream-box">
+          <div class="stream-row">
+            <span class="s-label">source$</span>
+            <div class="s-track">
+              <div class="s-line"></div>
+              <div class="s-events">
+                <div class="s-dot sd-blue">1</div>
+                <div class="s-gap"></div>
+                <div class="s-dot sd-blue">2</div>
+                <div class="s-gap"></div>
+                <div class="s-dot sd-blue">3</div>
+                <div class="s-gap"></div>
+                <span class="s-end">|</span>
+                <div class="s-spacer"></div>
+              </div>
+            </div>
+          </div>
+          <div class="stream-row">
+            <span class="s-label">map(x ⇒ x*10)</span>
+            <div class="s-track">
+              <div class="s-line"></div>
+              <div class="s-events">
+                <div class="s-dot sd-green">10</div>
+                <div class="s-gap"></div>
+                <div class="s-dot sd-green">20</div>
+                <div class="s-gap"></div>
+                <div class="s-dot sd-green">30</div>
+                <div class="s-gap"></div>
+                <span class="s-end">|</span>
+                <div class="s-spacer"></div>
+              </div>
+            </div>
+          </div>
+          <div class="stream-row">
+            <span class="s-label">error$</span>
+            <div class="s-track">
+              <div class="s-line"></div>
+              <div class="s-events">
+                <div class="s-dot sd-blue">1</div>
+                <div class="s-gap"></div>
+                <div class="s-dot sd-blue">2</div>
+                <div class="s-gap"></div>
+                <span class="s-err">✕</span>
+                <div class="s-spacer"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p style="font-size:12px;color:var(--muted);">Time flows left → right. Each circle is a <code>next()</code> value. <code>|</code> = complete. <code>✕</code> = error.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-title">The pipe() API — Composable Operators</div>
+        <div class="code-wrap">
+          <span class="code-label">JavaScript</span>
+          <pre><code class="language-javascript">import { fromEvent, interval } from 'rxjs';
+import { map, filter, take } from 'rxjs/operators';
+
+// Nothing starts until .subscribe() is called — Observables are LAZY
+const subscription = interval(1000).pipe(
+  map(n => n * 2),           // transform each value
+  filter(n => n % 4 === 0),  // only pass multiples of 4
+  take(5)                    // complete after 5 values
+).subscribe({
+  next:     value  => console.log('next:', value),
+  error:    err    => console.error('error:', err),
+  complete: ()     => console.log('done!')
+});
+
+// Cancel at any time
+subscription.unsubscribe();</code></pre>
+        </div>
+      </div>
+
+      <div class="controls">
+        <span></span>
+        <span class="slide-counter">1 / 6</span>
+        <button class="ctrl primary" data-next>Next →</button>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         SLIDE 1 — Cold vs Hot Observables
+    ═══════════════════════════════════════════ -->
+    <section class="slide" id="slide-1">
+      <div class="slide-header">
+        <div class="slide-icon">🌡️</div>
+        <div class="slide-meta">
+          <div class="badge b-concept">CORE CONCEPT</div>
+          <h2>Cold vs Hot Observables</h2>
+          <p>Does each subscriber get its own private stream, or do they all share one?</p>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">❄️ Cold — Private Stream Per Subscriber</div>
+          <div class="stream-box">
+            <div class="stream-row">
+              <span class="s-label">producer</span>
+              <div class="s-track">
+                <div class="s-line"></div>
+                <div class="s-events">
+                  <div class="s-dot sd-blue">1</div>
+                  <div class="s-dot sd-blue">2</div>
+                  <div class="s-dot sd-blue">3</div>
+                  <span class="s-end">|</span>
+                  <div class="s-spacer"></div>
+                </div>
+              </div>
+            </div>
+            <div class="stream-row">
+              <span class="s-label">sub A ^</span>
+              <div class="s-track">
+                <div class="s-line"></div>
+                <div class="s-events">
+                  <div class="s-dot sd-blue">1</div>
+                  <div class="s-dot sd-blue">2</div>
+                  <div class="s-dot sd-blue">3</div>
+                  <span class="s-end">|</span>
+                  <div class="s-spacer"></div>
+                </div>
+              </div>
+            </div>
+            <div class="stream-row">
+              <span class="s-label">sub B  ^</span>
+              <div class="s-track">
+                <div class="s-line"></div>
+                <div class="s-events">
+                  <div class="s-gap"></div>
+                  <div class="s-dot sd-green">1</div>
+                  <div class="s-dot sd-green">2</div>
+                  <div class="s-dot sd-green">3</div>
+                  <span class="s-end">|</span>
+                  <div class="s-spacer"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <ul class="bul">
+            <li>Producer starts <em>per subscription</em></li>
+            <li>Each subscriber gets all values from the start</li>
+            <li>Examples: HTTP request, <code>of()</code>, <code>interval()</code></li>
+          </ul>
+          <div class="callout" style="margin-top:12px;">
+            <strong>Watch out:</strong> calling a cold observable twice can fire two separate HTTP requests!
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">🔥 Hot — Shared Stream</div>
+          <div class="stream-box">
+            <div class="stream-row">
+              <span class="s-label">producer</span>
+              <div class="s-track">
+                <div class="s-line"></div>
+                <div class="s-events">
+                  <div class="s-dot sd-amber">1</div>
+                  <div class="s-dot sd-amber">2</div>
+                  <div class="s-dot sd-amber">3</div>
+                  <div class="s-dot sd-amber">4</div>
+                  <div class="s-dot sd-amber">5</div>
+                  <div class="s-spacer"></div>
+                  <span class="s-arrow">──▶</span>
+                </div>
+              </div>
+            </div>
+            <div class="stream-row">
+              <span class="s-label">sub A ^</span>
+              <div class="s-track">
+                <div class="s-line"></div>
+                <div class="s-events">
+                  <div class="s-dot sd-amber">1</div>
+                  <div class="s-dot sd-amber">2</div>
+                  <div class="s-dot sd-amber">3</div>
+                  <div class="s-dot sd-amber">4</div>
+                  <div class="s-dot sd-amber">5</div>
+                  <div class="s-spacer"></div>
+                </div>
+              </div>
+            </div>
+            <div class="stream-row">
+              <span class="s-label">sub B    ^</span>
+              <div class="s-track">
+                <div class="s-line"></div>
+                <div class="s-events">
+                  <div class="s-gap"></div><div class="s-gap"></div>
+                  <div class="s-dot sd-pink">3</div>
+                  <div class="s-dot sd-pink">4</div>
+                  <div class="s-dot sd-pink">5</div>
+                  <div class="s-spacer"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <ul class="bul">
+            <li>Producer runs <em>independently</em> of subscriptions</li>
+            <li>Late subscribers miss past values</li>
+            <li>Examples: DOM events, WebSocket messages</li>
+          </ul>
+          <div class="callout amber" style="margin-top:12px;">
+            <strong>Tip:</strong> Use <code>share()</code> to turn a cold source hot. Use <code>shareReplay(1)</code> to also replay the last value to late subscribers.
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">share() and shareReplay()</div>
+        <div class="code-wrap">
+          <span class="code-label">JavaScript</span>
+          <pre><code class="language-javascript">import { share, shareReplay } from 'rxjs/operators';
+
+// Cold → Hot: share one execution across all subscribers
+const shared$ = expensiveHttp$.pipe(share());
+shared$.subscribe(userA);  // triggers HTTP once
+shared$.subscribe(userB);  // joins the same execution
+
+// Cold → Hot + replay last value to late subscribers
+const config$ = loadConfig$.pipe(
+  shareReplay({ bufferSize: 1, refCount: true })
+);
+// late subscriber still gets the last emitted config
+config$.subscribe(lateComponent);</code></pre>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button class="ctrl" data-prev>← Previous</button>
+        <span class="slide-counter">2 / 6</span>
+        <button class="ctrl primary" data-next>Next →</button>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         SLIDE 2 — Key Operators
+    ═══════════════════════════════════════════ -->
+    <section class="slide" id="slide-2">
+      <div class="slide-header">
+        <div class="slide-icon">🔧</div>
+        <div class="slide-meta">
+          <div class="badge b-code">OPERATORS</div>
+          <h2>Key Operators</h2>
+          <p>The building blocks you'll use in almost every RxJS pipeline.</p>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">Transform</div>
+          <div class="code-wrap">
+            <span class="code-label">JavaScript</span>
+            <pre><code class="language-javascript">// map — transform each value
+source$.pipe(
+  map(x => x * 2)
+);
+// 1, 2, 3  →  2, 4, 6
+
+// scan — running accumulator (like reduce, but emits each step)
+source$.pipe(
+  scan((acc, val) => acc + val, 0)
+);
+// 1, 2, 3  →  1, 3, 6</code></pre>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">Filter</div>
+          <div class="code-wrap">
+            <span class="code-label">JavaScript</span>
+            <pre><code class="language-javascript">// filter — pass only matching values
+source$.pipe(
+  filter(x => x % 2 === 0)
+);
+// 1, 2, 3, 4  →  2, 4
+
+// take — complete after N values
+source$.pipe(take(3));
+
+// takeUntil — complete when notifier fires
+source$.pipe(takeUntil(destroy$));</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">Time-based</div>
+          <div class="code-wrap">
+            <span class="code-label">JavaScript</span>
+            <pre><code class="language-javascript">// debounceTime — emit only after silence
+source$.pipe(
+  debounceTime(300)  // wait 300ms of quiet
+);
+
+// throttleTime — emit at most once per interval
+source$.pipe(
+  throttleTime(1000) // max once per second
+);
+
+// delay — shift all emissions by a duration
+source$.pipe(delay(500));</code></pre>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">Deduplication & Combination</div>
+          <div class="code-wrap">
+            <span class="code-label">JavaScript</span>
+            <pre><code class="language-javascript">// distinctUntilChanged — skip consecutive duplicates
+source$.pipe(distinctUntilChanged());
+// 1, 1, 2, 2, 3  →  1, 2, 3
+
+// combineLatest — emit when any source emits (using all latest)
+combineLatest([price$, quantity$]).pipe(
+  map(([price, qty]) => price * qty)
+);
+
+// forkJoin — wait for ALL to complete (like Promise.all)
+forkJoin({ user: user$, posts: posts$ })
+  .subscribe(({ user, posts }) => render(user, posts));</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Error Handling</div>
+        <div class="code-wrap">
+          <span class="code-label">JavaScript</span>
+          <pre><code class="language-javascript">source$.pipe(
+  catchError(err => {
+    console.error(err);
+    return of([]);          // fallback value — stream continues
+    // or: return EMPTY;    // complete silently
+    // or: throwError(err); // re-throw
+  }),
+  retry(3),               // retry up to 3 times before erroring
+  retryWhen(errors =>     // retry with exponential back-off
+    errors.pipe(
+      delayWhen((_, i) => timer(Math.pow(2, i) * 1000))
+    )
+  )
+);</code></pre>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button class="ctrl" data-prev>← Previous</button>
+        <span class="slide-counter">3 / 6</span>
+        <button class="ctrl primary" data-next>Next →</button>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         SLIDE 3 — Flattening Operators
+    ═══════════════════════════════════════════ -->
+    <section class="slide" id="slide-3">
+      <div class="slide-header">
+        <div class="slide-icon">🌊</div>
+        <div class="slide-meta">
+          <div class="badge b-compare">THE BIG DECISION</div>
+          <h2>Flattening Operators</h2>
+          <p><code>mergeMap</code> vs <code>switchMap</code> vs <code>concatMap</code> vs <code>exhaustMap</code> — the most important choice in any RxJS pipeline.</p>
+        </div>
+      </div>
+
+      <div class="callout">
+        <strong>What they do:</strong> Each maps an outer value to an inner Observable. They differ in how they handle <em>overlap</em> — what happens when a new outer value arrives before the previous inner finishes.
+      </div>
+
+      <div class="card">
+        <div class="card-title">Marble Diagrams — Visualizing the Difference</div>
+        <div class="stream-box">
+          <div class="stream-row">
+            <span class="s-label">outer$</span>
+            <div class="s-track">
+              <div class="s-line"></div>
+              <div class="s-events">
+                <div class="s-dot sd-blue">A</div>
+                <div class="s-gap"></div><div class="s-gap"></div>
+                <div class="s-dot sd-amber">B</div>
+                <div class="s-spacer"></div>
+              </div>
+            </div>
+          </div>
+          <div class="stream-row">
+            <span class="s-label">mergeMap</span>
+            <div class="s-track">
+              <div class="s-line"></div>
+              <div class="s-events">
+                <div class="s-gap"></div>
+                <div class="s-dot sd-blue">a1</div>
+                <div class="s-dot sd-blue">a2</div>
+                <div class="s-dot sd-amber">b1</div>
+                <div class="s-dot sd-blue">a3</div>
+                <div class="s-dot sd-amber">b2</div>
+                <div class="s-spacer"></div>
+              </div>
+            </div>
+          </div>
+          <div class="stream-row">
+            <span class="s-label">switchMap</span>
+            <div class="s-track">
+              <div class="s-line"></div>
+              <div class="s-events">
+                <div class="s-gap"></div>
+                <div class="s-dot sd-blue">a1</div>
+                <div class="s-gap"></div>
+                <div class="s-dot sd-amber">b1</div>
+                <div class="s-dot sd-amber">b2</div>
+                <div class="s-dot sd-amber">b3</div>
+                <div class="s-spacer"></div>
+              </div>
+            </div>
+          </div>
+          <div class="stream-row">
+            <span class="s-label">concatMap</span>
+            <div class="s-track">
+              <div class="s-line"></div>
+              <div class="s-events">
+                <div class="s-gap"></div>
+                <div class="s-dot sd-blue">a1</div>
+                <div class="s-dot sd-blue">a2</div>
+                <div class="s-dot sd-blue">a3</div>
+                <div class="s-dot sd-amber">b1</div>
+                <div class="s-dot sd-amber">b2</div>
+                <div class="s-spacer"></div>
+              </div>
+            </div>
+          </div>
+          <div class="stream-row">
+            <span class="s-label">exhaustMap</span>
+            <div class="s-track">
+              <div class="s-line"></div>
+              <div class="s-events">
+                <div class="s-gap"></div>
+                <div class="s-dot sd-blue">a1</div>
+                <div class="s-dot sd-blue">a2</div>
+                <div class="s-dot sd-blue">a3</div>
+                <div class="s-gap"></div>
+                <div class="s-spacer"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Decision Table</div>
+        <table class="ctable" style="margin-bottom:0;">
+          <thead>
+            <tr><th>Operator</th><th>Concurrency</th><th>On new value</th><th>Best for</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="op-badge">mergeMap</span></td>
+              <td>All in parallel</td>
+              <td>Start new, keep all running</td>
+              <td>Parallel HTTP, fire-and-forget tasks</td>
+            </tr>
+            <tr>
+              <td><span class="op-badge">switchMap</span></td>
+              <td>Only latest</td>
+              <td>Cancel previous, start new</td>
+              <td>Search, autocomplete, live filters</td>
+            </tr>
+            <tr>
+              <td><span class="op-badge">concatMap</span></td>
+              <td>One at a time (queued)</td>
+              <td>Queue until current completes</td>
+              <td>Sequential saves, ordered writes</td>
+            </tr>
+            <tr>
+              <td><span class="op-badge">exhaustMap</span></td>
+              <td>First wins</td>
+              <td>Ignore until current completes</td>
+              <td>Login button, form submit guard</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout green">
+        <strong>Rule of thumb:</strong> Default to <code>switchMap</code> for UI interactions. Use <code>concatMap</code> when order matters. Use <code>mergeMap</code> when you want everything in parallel. Use <code>exhaustMap</code> to prevent double-submit.
+      </div>
+
+      <div class="controls">
+        <button class="ctrl" data-prev>← Previous</button>
+        <span class="slide-counter">4 / 6</span>
+        <button class="ctrl primary" data-next>Next →</button>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         SLIDE 4 — RxJS + React Live Search
+    ═══════════════════════════════════════════ -->
+    <section class="slide" id="slide-4">
+      <div class="slide-header">
+        <div class="slide-icon">⚛️</div>
+        <div class="slide-meta">
+          <div class="badge b-code">RXJS + REACT</div>
+          <h2>RxJS + React — Live Search</h2>
+          <p>A real-world autocomplete combining debouncing, deduplication, and stale-request cancellation.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Operator Pipeline</div>
+        <div class="flow" style="flex-wrap:wrap;gap:4px;">
+          <div class="flow-box" style="color:var(--accent);font-size:12px;">fromEvent<br><span style="color:var(--muted);font-size:10px;">keystroke stream</span></div>
+          <span class="flow-arrow">▶</span>
+          <div class="flow-box" style="font-size:12px;"><span class="op-badge">map</span><br><span style="color:var(--muted);font-size:10px;">extract value</span></div>
+          <span class="flow-arrow">▶</span>
+          <div class="flow-box" style="font-size:12px;"><span class="op-badge">debounceTime(300)</span><br><span style="color:var(--muted);font-size:10px;">wait for pause</span></div>
+          <span class="flow-arrow">▶</span>
+          <div class="flow-box" style="font-size:12px;"><span class="op-badge">distinctUntilChanged</span><br><span style="color:var(--muted);font-size:10px;">skip duplicates</span></div>
+          <span class="flow-arrow">▶</span>
+          <div class="flow-box" style="font-size:12px;"><span class="op-badge">switchMap</span><br><span style="color:var(--muted);font-size:10px;">cancel stale, start new</span></div>
+          <span class="flow-arrow">▶</span>
+          <div class="flow-box" style="color:var(--green);font-size:12px;">subscribe<br><span style="color:var(--muted);font-size:10px;">update UI</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">React Component</div>
+        <div class="code-wrap">
+          <span class="code-label">TypeScript · React</span>
+          <pre><code class="language-javascript">import { useEffect, useRef, useState } from 'react';
+import { fromEvent, from, of } from 'rxjs';
+import { map, debounceTime, distinctUntilChanged, switchMap, catchError } from 'rxjs/operators';
+
+interface Result { id: string; name: string; }
+
+export function LiveSearch() {
+  const [results, setResults] = useState&lt;Result[]&gt;([]);
+  const [loading, setLoading] = useState(false);
+  const inputRef = useRef&lt;HTMLInputElement&gt;(null);
+
+  useEffect(() => {
+    const input = inputRef.current!;
+
+    const subscription = fromEvent&lt;InputEvent&gt;(input, 'input')
+      .pipe(
+        map(e =&gt; (e.target as HTMLInputElement).value.trim()),
+        debounceTime(300),          // wait 300ms after last keystroke
+        distinctUntilChanged(),     // skip if same query repeated
+        switchMap(query =&gt; {        // cancel previous, start new request
+          if (!query) return of([]);
+          setLoading(true);
+          return from(
+            fetch(`/api/search?q=${query}`).then(r =&gt; r.json())
+          ).pipe(
+            catchError(() =&gt; of([]))  // fallback empty on error
+          );
+        })
+      )
+      .subscribe(data =&gt; {
+        setResults(data);
+        setLoading(false);
+      });
+
+    return () =&gt; subscription.unsubscribe(); // ← always clean up in useEffect!
+  }, []);
+
+  return (
+    &lt;div&gt;
+      &lt;input ref={inputRef} placeholder="Search..." /&gt;
+      {loading &amp;&amp; &lt;span&gt;Searching...&lt;/span&gt;}
+      &lt;ul&gt;{results.map(r =&gt; &lt;li key={r.id}&gt;{r.name}&lt;/li&gt;)}&lt;/ul&gt;
+    &lt;/div&gt;
+  );
+}</code></pre>
+        </div>
+      </div>
+
+      <div class="grid-3">
+        <div class="card">
+          <div class="card-title">debounceTime(300)</div>
+          <p style="font-size:13px;color:var(--muted);">Fires only after 300ms of silence. Prevents spamming the API on every keystroke.</p>
+        </div>
+        <div class="card">
+          <div class="card-title">distinctUntilChanged</div>
+          <p style="font-size:13px;color:var(--muted);">Skips if the query hasn't changed. Avoids duplicate requests for the same term.</p>
+        </div>
+        <div class="card">
+          <div class="card-title">switchMap</div>
+          <p style="font-size:13px;color:var(--muted);">Cancels the previous in-flight request when a new query arrives. No stale results.</p>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button class="ctrl" data-prev>← Previous</button>
+        <span class="slide-counter">5 / 6</span>
+        <button class="ctrl primary" data-next>Next →</button>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         SLIDE 5 — Summary
+    ═══════════════════════════════════════════ -->
+    <section class="slide" id="slide-5">
+      <div class="slide-header">
+        <div class="slide-icon">✅</div>
+        <div class="slide-meta">
+          <div class="badge b-summary">MODULE 02 COMPLETE</div>
+          <h2>Summary</h2>
+          <p>You can now reason about RxJS streams, operators, and real-world patterns.</p>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">What You Covered</div>
+          <ul class="bul">
+            <li><strong>RxJS basics</strong> — Observable contract, pipe(), marble diagrams</li>
+            <li><strong>Cold vs Hot</strong> — private vs shared execution</li>
+            <li><strong>share() / shareReplay()</strong> — multicasting</li>
+            <li><strong>Key operators</strong> — map, filter, debounceTime, catchError</li>
+            <li><strong>Flattening operators</strong> — mergeMap, switchMap, concatMap, exhaustMap</li>
+            <li><strong>RxJS + React</strong> — live search with cleanup</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-title">Operator Cheat Sheet</div>
+          <table class="ctable" style="margin-bottom:0;font-size:12px;">
+            <thead><tr><th>Need</th><th>Use</th></tr></thead>
+            <tbody>
+              <tr><td>Transform values</td><td><code>map</code></td></tr>
+              <tr><td>Filter values</td><td><code>filter</code></td></tr>
+              <tr><td>Wait for pause</td><td><code>debounceTime</code></td></tr>
+              <tr><td>Latest wins</td><td><code>switchMap</code></td></tr>
+              <tr><td>Keep all parallel</td><td><code>mergeMap</code></td></tr>
+              <tr><td>Sequential order</td><td><code>concatMap</code></td></tr>
+              <tr><td>Ignore while busy</td><td><code>exhaustMap</code></td></tr>
+              <tr><td>Recover from error</td><td><code>catchError</code></td></tr>
+              <tr><td>Share one execution</td><td><code>share()</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <a href="../03-webflux/index.html" style="text-decoration:none;display:block;">
+        <div class="card" style="border-color:var(--pink);cursor:pointer;transition:transform 0.15s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <span style="font-size:28px;">☕</span>
+            <div style="flex:1;">
+              <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;color:var(--pink);text-transform:uppercase;margin-bottom:3px;">Next Up — Module 03 · Advanced</div>
+              <div style="font-size:16px;font-weight:800;color:var(--text);">Spring WebFlux</div>
+              <div style="font-size:13px;color:var(--muted);margin-top:4px;">Why WebFlux, Mono &amp; Flux, REST API, non-blocking I/O model</div>
+            </div>
+            <div style="color:var(--pink);font-size:20px;">→</div>
+          </div>
+        </div>
+      </a>
+
+      <div class="controls">
+        <button class="ctrl" data-prev>← Previous</button>
+        <span class="slide-counter">6 / 6</span>
+        <button class="ctrl" onclick="show(0)">↩ Back to Start</button>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+  const SLIDE_COUNT = 6;
+  const slides = [...document.querySelectorAll('.slide')];
+  const navBtns = [...document.querySelectorAll('nav button[data-slide]')];
+  let current = 0;
+
+  function show(index) {
+    current = Math.max(0, Math.min(index, SLIDE_COUNT - 1));
+    slides.forEach((s, i) => s.classList.toggle('active', i === current));
+    navBtns.forEach((b, i) => b.classList.toggle('active', i === current));
+    document.getElementById('progress').style.width = ((current + 1) / SLIDE_COUNT * 100) + '%';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  navBtns.forEach((btn, i) => btn.setAttribute('data-slide', i));
+  navBtns.forEach((btn) => btn.addEventListener('click', () => show(Number(btn.dataset.slide))));
+  document.querySelectorAll('[data-next]').forEach(b => b.addEventListener('click', () => show(current + 1)));
+  document.querySelectorAll('[data-prev]').forEach(b => b.addEventListener('click', () => show(current - 1)));
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') show(current + 1);
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   show(current - 1);
+  });
+
+  document.addEventListener('DOMContentLoaded', () => hljs.highlightAll());
+  show(0);
+</script>
+</body>
+</html>

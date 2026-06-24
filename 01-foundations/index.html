@@ -207,21 +207,21 @@
       </button>
     </nav>
 
-    <div class="nav-sep">Reactive in Practice</div>
+    <div class="nav-sep">Comparison</div>
     <nav>
       <button data-slide="5">
         <span class="nav-num">6</span>Promises vs Observables
       </button>
       <button data-slide="6">
-        <span class="nav-num">7</span>RxJS + React — Live Search
-      </button>
-      <button data-slide="7">
-        <span class="nav-num">8</span>Spring WebFlux — REST API
-      </button>
-      <button data-slide="8">
-        <span class="nav-num">9</span>Summary & Key Takeaways
+        <span class="nav-num">7</span>What's Next?
       </button>
     </nav>
+
+    <div style="margin-top:auto;padding-top:24px;border-top:1px solid var(--line);margin-top:24px;">
+      <a href="../index.html" style="display:flex;align-items:center;gap:8px;color:var(--muted);font-size:12px;text-decoration:none;padding:8px 10px;border-radius:8px;" onmouseover="this.style.background='var(--line)'" onmouseout="this.style.background='transparent'">
+        ← All Modules
+      </a>
+    </div>
   </aside>
 
   <!-- ═══ MAIN CONTENT ═══ -->
@@ -337,7 +337,7 @@
 
       <div class="controls">
         <span></span>
-        <span class="slide-counter">1 / 9</span>
+        <span class="slide-counter">1 / 7</span>
         <button class="ctrl primary" data-next>Next →</button>
       </div>
     </section>
@@ -435,7 +435,7 @@
 
       <div class="controls">
         <button class="ctrl" data-prev>← Previous</button>
-        <span class="slide-counter">2 / 9</span>
+        <span class="slide-counter">2 / 7</span>
         <button class="ctrl primary" data-next>Next →</button>
       </div>
     </section>
@@ -523,7 +523,7 @@ subject.notify('world');   // Observer B: world  (A no longer notified)</code></
 
       <div class="controls">
         <button class="ctrl" data-prev>← Previous</button>
-        <span class="slide-counter">3 / 9</span>
+        <span class="slide-counter">3 / 7</span>
         <button class="ctrl primary" data-next>Next →</button>
       </div>
     </section>
@@ -611,7 +611,7 @@ console.log([...numbers(1, 5)]); // [1, 2, 3, 4, 5]</code></pre>
 
       <div class="controls">
         <button class="ctrl" data-prev>← Previous</button>
-        <span class="slide-counter">4 / 9</span>
+        <span class="slide-counter">4 / 7</span>
         <button class="ctrl primary" data-next>Next →</button>
       </div>
     </section>
@@ -701,7 +701,7 @@ fromEvent(window, 'resize').subscribe(e => {
 
       <div class="controls">
         <button class="ctrl" data-prev>← Previous</button>
-        <span class="slide-counter">5 / 9</span>
+        <span class="slide-counter">5 / 7</span>
         <button class="ctrl primary" data-next>Next →</button>
       </div>
     </section>
@@ -781,382 +781,82 @@ const sub = search$.subscribe(setResults);
 
       <div class="controls">
         <button class="ctrl" data-prev>← Previous</button>
-        <span class="slide-counter">6 / 9</span>
+        <span class="slide-counter">6 / 7</span>
         <button class="ctrl primary" data-next>Next →</button>
       </div>
     </section>
 
     <!-- ══════════════════════════════════════════
-         SLIDE 6 — RxJS + React — Live Search
+         SLIDE 6 — What's Next?
     ═══════════════════════════════════════════ -->
     <section class="slide" id="slide-6">
       <div class="slide-header">
-        <div class="slide-icon">⚛️</div>
-        <div class="slide-meta">
-          <div class="badge b-code">RXJS + REACT</div>
-          <h2>RxJS + React — Live Search</h2>
-          <p>A real-world autocomplete that combines debouncing, deduplication, and stale-request cancellation.</p>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">Operator Pipeline — What Each Step Does</div>
-        <div class="flow" style="flex-wrap:wrap;gap:4px;">
-          <div class="flow-box" style="color:var(--accent);font-size:12px;">fromEvent<br><span style="color:var(--muted);font-size:10px;">keystroke stream</span></div>
-          <span class="flow-arrow">▶</span>
-          <div class="flow-box" style="font-size:12px;"><span class="op-badge">map</span><br><span style="color:var(--muted);font-size:10px;">extract value</span></div>
-          <span class="flow-arrow">▶</span>
-          <div class="flow-box" style="font-size:12px;"><span class="op-badge">debounceTime(300)</span><br><span style="color:var(--muted);font-size:10px;">wait for pause</span></div>
-          <span class="flow-arrow">▶</span>
-          <div class="flow-box" style="font-size:12px;"><span class="op-badge">distinctUntilChanged</span><br><span style="color:var(--muted);font-size:10px;">skip duplicates</span></div>
-          <span class="flow-arrow">▶</span>
-          <div class="flow-box" style="font-size:12px;"><span class="op-badge">switchMap</span><br><span style="color:var(--muted);font-size:10px;">cancel stale, start new</span></div>
-          <span class="flow-arrow">▶</span>
-          <div class="flow-box" style="color:var(--green);font-size:12px;">subscribe<br><span style="color:var(--muted);font-size:10px;">update UI</span></div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">React Component</div>
-        <div class="code-wrap">
-          <span class="code-label">TypeScript · React</span>
-          <pre><code class="language-javascript">import { useEffect, useRef, useState } from 'react';
-import { fromEvent } from 'rxjs';
-import { map, debounceTime, distinctUntilChanged, switchMap, catchError } from 'rxjs/operators';
-import { from, of } from 'rxjs';
-
-interface Result { id: string; name: string; }
-
-export function LiveSearch() {
-  const [results, setResults] = useState&lt;Result[]&gt;([]);
-  const [loading, setLoading] = useState(false);
-  const inputRef = useRef&lt;HTMLInputElement&gt;(null);
-
-  useEffect(() => {
-    const input = inputRef.current!;
-
-    const subscription = fromEvent&lt;InputEvent&gt;(input, 'input')
-      .pipe(
-        map(e =&gt; (e.target as HTMLInputElement).value.trim()),
-        debounceTime(300),          // wait 300ms after last keystroke
-        distinctUntilChanged(),     // ignore if same query as before
-        switchMap(query =&gt; {        // cancel previous request!
-          if (!query) return of([]);
-          setLoading(true);
-          return from(
-            fetch(`/api/search?q=${query}`).then(r =&gt; r.json())
-          ).pipe(
-            catchError(() =&gt; of([]))  // fallback on error
-          );
-        })
-      )
-      .subscribe(data =&gt; {
-        setResults(data);
-        setLoading(false);
-      });
-
-    return () =&gt; subscription.unsubscribe(); // ← cleanup prevents memory leaks
-  }, []);
-
-  return (
-    &lt;div&gt;
-      &lt;input ref={inputRef} placeholder="Search..." /&gt;
-      {loading &amp;&amp; &lt;span&gt;Searching...&lt;/span&gt;}
-      &lt;ul&gt;
-        {results.map(r =&gt; &lt;li key={r.id}&gt;{r.name}&lt;/li&gt;)}
-      &lt;/ul&gt;
-    &lt;/div&gt;
-  );
-}</code></pre>
-        </div>
-      </div>
-
-      <div class="grid-3">
-        <div class="card">
-          <div class="card-title">debounceTime(300)</div>
-          <p style="font-size:13px;color:var(--muted);">Only fires after 300ms of silence. Prevents spamming the API with every single keystroke.</p>
-        </div>
-        <div class="card">
-          <div class="card-title">distinctUntilChanged</div>
-          <p style="font-size:13px;color:var(--muted);">Skips if query hasn't changed. Avoids duplicate network requests for the same term.</p>
-        </div>
-        <div class="card">
-          <div class="card-title">switchMap</div>
-          <p style="font-size:13px;color:var(--muted);">Cancels the previous in-flight request when a new query arrives. No stale results!</p>
-        </div>
-      </div>
-
-      <div class="controls">
-        <button class="ctrl" data-prev>← Previous</button>
-        <span class="slide-counter">7 / 9</span>
-        <button class="ctrl primary" data-next>Next →</button>
-      </div>
-    </section>
-
-    <!-- ══════════════════════════════════════════
-         SLIDE 7 — Spring WebFlux REST API
-    ═══════════════════════════════════════════ -->
-    <section class="slide" id="slide-7">
-      <div class="slide-header">
-        <div class="slide-icon">☕</div>
-        <div class="slide-meta">
-          <div class="badge b-api">SPRING WEBFLUX</div>
-          <h2>Spring WebFlux — REST API</h2>
-          <p>Reactive types <code style="color:var(--accent)">Mono&lt;T&gt;</code> and <code style="color:var(--pink)">Flux&lt;T&gt;</code> replace blocking calls with a fully non-blocking pipeline.</p>
-        </div>
-      </div>
-
-      <div class="grid-2">
-        <div class="card">
-          <div class="card-title">Mono&lt;T&gt; — Zero or One Value</div>
-          <ul class="bul">
-            <li>The reactive equivalent of a <strong>Promise</strong></li>
-            <li>0 or 1 async result</li>
-            <li>Used for: find-by-id, create, update, delete</li>
-          </ul>
-          <div class="stream-box" style="margin-top:12px;">
-            <div class="stream-row">
-              <span class="s-label" style="width:60px;">Mono</span>
-              <div class="s-track">
-                <div class="s-line"></div>
-                <div class="s-events">
-                  <div class="s-gap"></div><div class="s-gap"></div>
-                  <div class="s-dot sd-blue">T</div>
-                  <div class="s-gap"></div>
-                  <span class="s-end">|</span>
-                  <div class="s-spacer"></div>
-                </div>
-              </div>
-            </div>
-            <div class="stream-row">
-              <span class="s-label" style="width:60px;">Mono.empty</span>
-              <div class="s-track">
-                <div class="s-line"></div>
-                <div class="s-events">
-                  <div class="s-gap"></div><div class="s-gap"></div><div class="s-gap"></div>
-                  <span class="s-end">|</span>
-                  <div class="s-spacer"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="card">
-          <div class="card-title">Flux&lt;T&gt; — Zero to N Values</div>
-          <ul class="bul">
-            <li>The reactive equivalent of an <strong>Observable</strong></li>
-            <li>0 to ∞ async results</li>
-            <li>Used for: list all, streaming SSE, WebSocket</li>
-          </ul>
-          <div class="stream-box" style="margin-top:12px;">
-            <div class="stream-row">
-              <span class="s-label" style="width:60px;">Flux</span>
-              <div class="s-track">
-                <div class="s-line"></div>
-                <div class="s-events">
-                  <div class="s-dot sd-green">1</div>
-                  <div class="s-dot sd-green">2</div>
-                  <div class="s-dot sd-green">3</div>
-                  <div class="s-gap"></div>
-                  <span class="s-end">|</span>
-                  <div class="s-spacer"></div>
-                </div>
-              </div>
-            </div>
-            <div class="stream-row">
-              <span class="s-label" style="width:60px;">Flux SSE</span>
-              <div class="s-track">
-                <div class="s-line"></div>
-                <div class="s-events">
-                  <div class="s-dot sd-amber">1</div>
-                  <div class="s-dot sd-amber">2</div>
-                  <div class="s-dot sd-amber">3</div>
-                  <div class="s-dot sd-amber">4</div>
-                  <div class="s-dot sd-amber">…</div>
-                  <div class="s-spacer"></div>
-                  <span class="s-arrow">──▶</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">ProductController — from this project</div>
-        <div class="code-wrap">
-          <span class="code-label">Java · Spring WebFlux</span>
-          <pre><code class="language-java">@RestController
-@RequestMapping("/products")
-public class ProductController {
-
-    // Mono&lt;T&gt; = 0 or 1 result — equivalent to Promise
-    @GetMapping("/{id}")
-    public Mono&lt;Product&gt; getById(@PathVariable String id) {
-        return Mono.justOrEmpty(products.get(id));
-        // returns 404 automatically if empty
-    }
-
-    // Flux&lt;T&gt; = 0..N results — equivalent to Observable
-    @GetMapping
-    public Flux&lt;Product&gt; getAll() {
-        return Flux.fromIterable(products.values());
-    }
-
-    // Server-Sent Events — stream data to the browser in real time
-    @GetMapping(value = "/stream",
-                produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux&lt;Product&gt; streamProducts() {
-        return productRepository.findAll()
-            .delayElements(Duration.ofMillis(200)); // emit one every 200ms
-    }
-
-    // Accept a reactive body — no blocking deserialization
-    @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public Mono&lt;Product&gt; create(@RequestBody Mono&lt;Product&gt; body) {
-        return body.map(product -&gt; {
-            products.put(product.id(), product);
-            return product;
-        });
-    }
-}</code></pre>
-        </div>
-      </div>
-
-      <div class="grid-2">
-        <div class="card">
-          <div class="card-title">😴 Blocking (Spring MVC)</div>
-          <div class="code-wrap" style="margin-bottom:0;">
-            <pre><code class="language-java">// Thread-per-request model
-// Thread A: request → wait for DB → response
-// Thread B: request → wait for DB → response
-// Thread C: request → wait for DB → response
-// ...
-// Under load: thread pool exhausted → 503s</code></pre>
-          </div>
-        </div>
-        <div class="card">
-          <div class="card-title">⚡ Non-Blocking (WebFlux)</div>
-          <div class="code-wrap" style="margin-bottom:0;">
-            <pre><code class="language-java">// Event-loop model (like Node.js)
-// Few threads handle thousands of requests
-// Thread is freed while waiting for I/O
-// Results delivered via callbacks/reactive pipelines
-// Handles 10x more concurrent connections</code></pre>
-          </div>
-        </div>
-      </div>
-
-      <div class="controls">
-        <button class="ctrl" data-prev>← Previous</button>
-        <span class="slide-counter">8 / 9</span>
-        <button class="ctrl primary" data-next>Next →</button>
-      </div>
-    </section>
-
-    <!-- ══════════════════════════════════════════
-         SLIDE 8 — Summary
-    ═══════════════════════════════════════════ -->
-    <section class="slide" id="slide-8">
-      <div class="slide-header">
         <div class="slide-icon">🗺️</div>
         <div class="slide-meta">
-          <div class="badge b-summary">SUMMARY</div>
-          <h2>Summary &amp; Key Takeaways</h2>
-          <p>Everything connects — from GoF patterns to production-grade reactive APIs.</p>
+          <div class="badge b-summary">MODULE 01 COMPLETE</div>
+          <h2>What's Next?</h2>
+          <p>You've got the foundations. Now see reactive programming in action with real libraries.</p>
         </div>
       </div>
 
       <div class="card">
-        <div class="card-title">The Concept Map</div>
-        <div class="stream-box" style="font-size:12.5px;">
-          <div style="display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:8px;align-items:center;">
-            <div style="text-align:center;">
-              <div style="background:var(--panel2);border:1px solid var(--line2);border-radius:10px;padding:10px 8px;margin-bottom:6px;">
-                <div style="color:var(--green);font-weight:700;margin-bottom:4px;">Design Patterns</div>
-                <div style="font-size:11px;color:var(--muted);">Observer Pattern</div>
-                <div style="font-size:11px;color:var(--muted);">Iterator Pattern</div>
-                <div style="font-size:11px;color:var(--muted);">Pull vs Push</div>
-              </div>
-            </div>
-            <div style="color:var(--muted);font-size:20px;text-align:center;">▶</div>
-            <div style="text-align:center;">
-              <div style="background:var(--panel2);border:1px solid var(--line2);border-radius:10px;padding:10px 8px;margin-bottom:6px;">
-                <div style="color:var(--accent);font-weight:700;margin-bottom:4px;">Reactive Library</div>
-                <div style="font-size:11px;color:var(--muted);">Observable / Flux</div>
-                <div style="font-size:11px;color:var(--muted);">Operators: map, filter</div>
-                <div style="font-size:11px;color:var(--muted);">switchMap, debounce</div>
-              </div>
-            </div>
-            <div style="color:var(--muted);font-size:20px;text-align:center;">▶</div>
-            <div style="text-align:center;">
-              <div style="background:var(--panel2);border:1px solid var(--line2);border-radius:10px;padding:10px 8px;margin-bottom:6px;">
-                <div style="color:var(--pink);font-weight:700;margin-bottom:4px;">Production</div>
-                <div style="font-size:11px;color:var(--muted);">RxJS + React UI</div>
-                <div style="font-size:11px;color:var(--muted);">Spring WebFlux API</div>
-                <div style="font-size:11px;color:var(--muted);">SSE / WebSocket</div>
-              </div>
-            </div>
-          </div>
+        <div class="card-title">What You Covered in This Module</div>
+        <div class="grid-2" style="margin-bottom:0;">
+          <ul class="bul">
+            <li><strong>Reactive Programming</strong> — streams + propagation of change</li>
+            <li><strong>Why Reactive</strong> — limits of callbacks and Promises</li>
+            <li><strong>Observer Pattern</strong> — one subject, many observers</li>
+          </ul>
+          <ul class="bul">
+            <li><strong>Iterator Pattern</strong> — pull-based lazy sequences</li>
+            <li><strong>Pull vs Push</strong> — who controls when data arrives</li>
+            <li><strong>Promises vs Observables</strong> — lazy, cancellable, composable</li>
+          </ul>
         </div>
       </div>
 
       <div class="grid-2">
-        <div class="card">
-          <div class="card-title">What You Learned</div>
-          <ul class="bul">
-            <li><strong>Reactive Programming</strong> — streams + propagation of change</li>
-            <li><strong>Observer Pattern</strong> — one subject, many observers (GoF)</li>
-            <li><strong>Iterator Pattern</strong> — pull-based lazy sequences (GoF)</li>
-            <li><strong>Pull vs Push</strong> — who controls when data arrives</li>
-            <li><strong>Observable advantages</strong> — lazy, cancellable, composable</li>
-            <li><strong>RxJS + React</strong> — debounce, switchMap, cleanup</li>
-            <li><strong>WebFlux</strong> — Mono&lt;T&gt;, Flux&lt;T&gt;, non-blocking I/O</li>
-          </ul>
-        </div>
-        <div class="card">
-          <div class="card-title">When to Reach for Reactive</div>
-          <ul class="bul">
-            <li>Real-time data: chats, dashboards, live feeds</li>
-            <li>User input handling: search, autocomplete, drag</li>
-            <li>High-concurrency APIs: many simultaneous users</li>
-            <li>Event-driven microservices &amp; messaging</li>
-            <li>WebSocket / SSE streams</li>
-            <li>Complex async workflows with retries &amp; fallbacks</li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">📚 Continue Learning</div>
-        <div class="grid-3" style="margin-bottom:0;">
-          <div>
-            <div style="font-weight:700;font-size:13px;margin-bottom:6px;color:var(--accent)">RxJS</div>
-            <ul class="bul" style="font-size:12px;">
-              <li><a href="https://rxjs.dev" target="_blank" style="color:var(--accent)">rxjs.dev</a></li>
-              <li><a href="https://reactivex.io" target="_blank" style="color:var(--accent)">reactivex.io</a></li>
+        <a href="../02-rxjs/index.html" style="text-decoration:none;" class="module-link">
+          <div class="card" style="border-color:var(--accent);cursor:pointer;transition:transform 0.15s;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='none'">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+              <span style="font-size:28px;">🔀</span>
+              <div>
+                <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;color:var(--accent);text-transform:uppercase;margin-bottom:3px;">Module 02 · Intermediate</div>
+                <div style="font-size:16px;font-weight:800;color:var(--text);">RxJS In Depth</div>
+              </div>
+            </div>
+            <ul class="bul" style="font-size:13px;">
+              <li>Cold vs Hot Observables</li>
+              <li>Key operators: map, filter, debounceTime</li>
+              <li>switchMap vs mergeMap vs concatMap</li>
+              <li>RxJS + React — Live Search component</li>
             </ul>
+            <div style="margin-top:12px;text-align:right;color:var(--accent);font-size:13px;font-weight:700;">Start Module 02 →</div>
           </div>
-          <div>
-            <div style="font-weight:700;font-size:13px;margin-bottom:6px;color:var(--pink)">WebFlux</div>
-            <ul class="bul" style="font-size:12px;">
-              <li><a href="https://projectreactor.io" target="_blank" style="color:var(--pink)">projectreactor.io</a></li>
-              <li><a href="https://spring.io/reactive" target="_blank" style="color:var(--pink)">spring.io/reactive</a></li>
+        </a>
+        <a href="../03-webflux/index.html" style="text-decoration:none;">
+          <div class="card" style="border-color:var(--pink);cursor:pointer;transition:transform 0.15s;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='none'">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+              <span style="font-size:28px;">☕</span>
+              <div>
+                <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;color:var(--pink);text-transform:uppercase;margin-bottom:3px;">Module 03 · Advanced</div>
+                <div style="font-size:16px;font-weight:800;color:var(--text);">Spring WebFlux</div>
+              </div>
+            </div>
+            <ul class="bul" style="font-size:13px;">
+              <li>Why WebFlux? The C10K problem</li>
+              <li>Mono&lt;T&gt; and Flux&lt;T&gt; core types</li>
+              <li>REST API with ProductController</li>
+              <li>Non-blocking I/O model</li>
             </ul>
+            <div style="margin-top:12px;text-align:right;color:var(--pink);font-size:13px;font-weight:700;">Start Module 03 →</div>
           </div>
-          <div>
-            <div style="font-weight:700;font-size:13px;margin-bottom:6px;color:var(--green)">Manifesto</div>
-            <ul class="bul" style="font-size:12px;">
-              <li><a href="https://www.reactivemanifesto.org" target="_blank" style="color:var(--green)">reactivemanifesto.org</a></li>
-            </ul>
-          </div>
-        </div>
+        </a>
       </div>
 
       <div class="controls">
         <button class="ctrl" data-prev>← Previous</button>
-        <span class="slide-counter">9 / 9</span>
+        <span class="slide-counter">7 / 7</span>
         <button class="ctrl" onclick="show(0)">↩ Back to Start</button>
       </div>
     </section>
@@ -1165,7 +865,7 @@ public class ProductController {
 </div>
 
 <script>
-  const SLIDE_COUNT = 9;
+  const SLIDE_COUNT = 7;
   const slides = [...document.querySelectorAll('.slide')];
   const navBtns = [...document.querySelectorAll('nav button[data-slide]')];
   let current = 0;
@@ -1183,13 +883,11 @@ public class ProductController {
   document.querySelectorAll('[data-next]').forEach(b => b.addEventListener('click', () => show(current + 1)));
   document.querySelectorAll('[data-prev]').forEach(b => b.addEventListener('click', () => show(current - 1)));
 
-  // Keyboard navigation
   document.addEventListener('keydown', e => {
     if (e.key === 'ArrowRight' || e.key === 'ArrowDown') show(current + 1);
     if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   show(current - 1);
   });
 
-  // Init highlight.js
   document.addEventListener('DOMContentLoaded', () => hljs.highlightAll());
   show(0);
 </script>

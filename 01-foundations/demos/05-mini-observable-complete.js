@@ -1,11 +1,3 @@
-// 05-mini-observable-complete.js
-// Run with:
-// node 01-foundations/demos/05-mini-observable-complete.js
-
-// TEMPLATE APPROACH
-// This is the final API shape, still left as boilerplate.
-// Use it as the consistent starting point for a follow-up implementation session.
-
 class Observable {
   constructor(subscribeFn) {
     this.subscribeFn = subscribeFn;

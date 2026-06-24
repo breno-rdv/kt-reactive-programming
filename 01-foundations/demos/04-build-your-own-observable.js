@@ -1,14 +1,3 @@
-// 04-build-your-own-observable.js
-// Run with:
-// node 01-foundations/demos/04-build-your-own-observable.js
-
-// TEMPLATE APPROACH
-// This file is a live-coding scaffold.
-// Complete one step at a time.
-
-// Goal:
-// Build a minimal Observable with subscribe(observer).
-
 class Observable {
   constructor(subscribeFn) {
     this.subscribeFn = subscribeFn;

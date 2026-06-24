@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reactive Programming — Spring WebFlux</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/tokyo-night-dark.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
+  <style>
+    :root {
+      --bg: #020617; --panel: #0f172a; --panel2: #111827;
+      --line: #1e293b; --line2: #334155;
+      --text: #e2e8f0; --muted: #94a3b8;
+      --accent: #38bdf8; --accent2: #818cf8;
+      --green: #34d399; --amber: #fbbf24; --red: #f87171; --pink: #f472b6;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+    #progress { position: fixed; top: 0; left: 0; height: 3px; background: linear-gradient(90deg, var(--pink), var(--accent2)); transition: width 0.3s ease; z-index: 200; }
+    .layout { display: grid; grid-template-columns: 285px 1fr; min-height: 100vh; }
+    aside { padding: 24px 14px; border-right: 1px solid var(--line); background: #07101e; position: sticky; top: 0; height: 100vh; overflow-y: auto; display: flex; flex-direction: column; }
+    .logo { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+    .logo span { color: var(--pink); }
+    aside h2 { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 20px; line-height: 1.4; }
+    .nav-sep { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin: 14px 0 4px 10px; }
+    nav button { display: flex; align-items: flex-start; gap: 10px; width: 100%; padding: 9px 10px; border-radius: 9px; border: none; background: transparent; color: var(--muted); text-align: left; cursor: pointer; font-size: 12.5px; line-height: 1.4; transition: background 0.15s, color 0.15s; margin-bottom: 2px; }
+    nav button:hover { background: var(--line); color: var(--text); }
+    nav button.active { background: var(--line); color: var(--pink); font-weight: 600; }
+    .nav-num { font-size: 10px; font-weight: 700; color: var(--muted); background: var(--line); border-radius: 5px; padding: 2px 6px; min-width: 20px; text-align: center; flex-shrink: 0; margin-top: 1px; }
+    nav button.active .nav-num { background: var(--pink); color: #fff; }
+    .aside-footer { margin-top: auto; padding-top: 16px; border-top: 1px solid var(--line); }
+    .aside-footer a { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 12px; text-decoration: none; padding: 8px 10px; border-radius: 8px; transition: background 0.15s; }
+    .aside-footer a:hover { background: var(--line); color: var(--text); }
+    main { padding: 40px 52px; overflow-y: auto; }
+    .slide { display: none; max-width: 860px; }
+    .slide.active { display: block; animation: fadeIn 0.2s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+    .slide-header { display: flex; align-items: flex-start; gap: 16px; margin-bottom: 28px; }
+    .slide-icon { font-size: 28px; width: 52px; height: 52px; background: var(--panel); border: 1px solid var(--line2); border-radius: 13px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .slide-meta { flex: 1; }
+    .badge { display: inline-flex; align-items: center; font-size: 10.5px; font-weight: 700; padding: 3px 9px; border-radius: 999px; margin-bottom: 7px; letter-spacing: 0.04em; }
+    .b-concept { background: #1e1b4b; color: var(--accent2); border: 1px solid #3730a3; }
+    .b-api     { background: #2d1b69; color: var(--pink); border: 1px solid #7c3aed; }
+    .b-compare { background: #431407; color: var(--amber); border: 1px solid #92400e; }
+    .b-code    { background: #0c2340; color: var(--accent); border: 1px solid #1d4ed8; }
+    .b-summary { background: #083344; color: var(--green); border: 1px solid #0e7490; }
+    .slide-meta h2 { font-size: 24px; font-weight: 800; color: var(--text); line-height: 1.2; }
+    .slide-meta p { font-size: 13.5px; color: var(--muted); margin-top: 4px; line-height: 1.5; }
+    .card { background: var(--panel2); border: 1px solid var(--line2); border-radius: 13px; padding: 18px 20px; margin-bottom: 14px; }
+    .card-title { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 9px; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+    pre { border-radius: 11px; overflow: auto; margin: 0; font-size: 12.5px; line-height: 1.65; }
+    pre code.hljs { border-radius: 11px; padding: 16px 18px !important; }
+    .code-wrap { position: relative; margin-bottom: 14px; }
+    .code-label { position: absolute; top: 9px; right: 13px; font-size: 10px; color: #4a5568; font-weight: 700; z-index: 1; letter-spacing: 0.06em; text-transform: uppercase; }
+    .ctable { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 14px; }
+    .ctable th { background: var(--panel); color: var(--muted); font-size: 10.5px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; padding: 9px 13px; text-align: left; border: 1px solid var(--line2); }
+    .ctable td { padding: 9px 13px; border: 1px solid var(--line2); vertical-align: middle; font-size: 13px; }
+    .ctable tr:nth-child(even) td { background: #080e1c; }
+    .ck { color: var(--green); font-weight: 700; }
+    .cx { color: var(--red); font-weight: 700; }
+    .stream-box { background: var(--bg); border: 1px solid var(--line2); border-radius: 11px; padding: 18px 20px; margin-bottom: 14px; font-family: monospace; }
+    .stream-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .stream-row:last-child { margin-bottom: 0; }
+    .s-label { font-size: 11px; color: var(--muted); width: 110px; flex-shrink: 0; font-weight: 600; }
+    .s-track { flex: 1; display: flex; align-items: center; position: relative; height: 32px; }
+    .s-line { position: absolute; top: 50%; left: 0; right: 0; height: 2px; background: var(--line2); transform: translateY(-50%); }
+    .s-events { position: relative; z-index: 1; display: flex; align-items: center; gap: 8px; width: 100%; }
+    .s-dot { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; border: 2px solid transparent; }
+    .sd-blue  { background: #0c2340; color: var(--accent); border-color: var(--accent); }
+    .sd-green { background: #052e16; color: var(--green); border-color: var(--green); }
+    .sd-amber { background: #431407; color: var(--amber); border-color: var(--amber); }
+    .sd-pink  { background: #500724; color: var(--pink); border-color: var(--pink); }
+    .s-spacer { flex: 1; }
+    .s-end { color: var(--muted); font-size: 18px; font-weight: 700; }
+    .s-err { color: var(--red); font-size: 16px; font-weight: 700; }
+    .s-gap { width: 20px; flex-shrink: 0; }
+    .s-arrow { color: var(--muted); font-size: 13px; }
+    .callout { border-left: 3px solid var(--accent); background: #0a1b2e; border-radius: 0 11px 11px 0; padding: 13px 16px; font-size: 13.5px; line-height: 1.6; margin-bottom: 14px; }
+    .callout.green { border-color: var(--green); background: #071a0f; }
+    .callout.amber { border-color: var(--amber); background: #1a1000; }
+    .callout.pink  { border-color: var(--pink);  background: #200818; }
+    .callout strong { color: var(--accent); }
+    .callout.green strong { color: var(--green); }
+    .callout.amber strong { color: var(--amber); }
+    .callout.pink  strong { color: var(--pink); }
+    ul.bul { list-style: none; padding: 0; margin: 0; }
+    ul.bul li { padding: 5px 0 5px 22px; position: relative; font-size: 13.5px; color: var(--text); line-height: 1.55; }
+    ul.bul li::before { content: '▸'; position: absolute; left: 0; color: var(--pink); font-size: 11px; top: 7px; }
+    .pill { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 12px; font-weight: 600; margin: 2px; }
+    .p-blue  { background: #0c2340; color: var(--accent); }
+    .p-green { background: #052e16; color: var(--green); }
+    .p-amber { background: #431407; color: var(--amber); }
+    .p-pink  { background: #2d0a3b; color: var(--pink); }
+    .controls { display: flex; justify-content: space-between; align-items: center; margin-top: 36px; padding-top: 18px; border-top: 1px solid var(--line); }
+    .ctrl { display: flex; align-items: center; gap: 7px; background: var(--panel2); border: 1px solid var(--line2); color: var(--text); border-radius: 9px; padding: 9px 18px; cursor: pointer; font-size: 13px; font-weight: 600; transition: background 0.15s, border-color 0.15s; }
+    .ctrl:hover { background: var(--line); border-color: var(--pink); color: var(--pink); }
+    .ctrl.primary { background: var(--pink); border-color: var(--pink); color: #fff; }
+    .ctrl.primary:hover { background: #fb7cc4; }
+    .slide-counter { font-size: 12px; color: var(--muted); }
+    @media (max-width: 920px) { .layout { grid-template-columns: 1fr; } aside { height: auto; position: relative; } main { padding: 24px 18px; } .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+<div id="progress"></div>
+<div class="layout">
+
+  <aside>
+    <div class="logo">Reactive Programming · <span>KT</span></div>
+    <h2>Spring WebFlux · Module 03</h2>
+
+    <div class="nav-sep">Why Reactive</div>
+    <nav>
+      <button class="active" data-slide="0"><span class="nav-num">1</span>Why WebFlux?</button>
+    </nav>
+
+    <div class="nav-sep">Core Types</div>
+    <nav>
+      <button data-slide="1"><span class="nav-num">2</span>Mono &amp; Flux</button>
+    </nav>
+
+    <div class="nav-sep">API in Practice</div>
+    <nav>
+      <button data-slide="2"><span class="nav-num">3</span>REST API — ProductController</button>
+      <button data-slide="3"><span class="nav-num">4</span>Operators &amp; Error Handling</button>
+    </nav>
+
+    <div class="nav-sep">Done</div>
+    <nav>
+      <button data-slide="4"><span class="nav-num">5</span>Summary</button>
+    </nav>
+
+    <div class="aside-footer">
+      <a href="../index.html">← All Modules</a>
+      <a href="../02-rxjs/index.html">‹ Module 02: RxJS</a>
+    </div>
+  </aside>
+
+  <main>
+
+    <!-- ══════════════════════════════════════════
+         SLIDE 0 — Why WebFlux?
+    ═══════════════════════════════════════════ -->
+    <section class="slide active" id="slide-0">
+      <div class="slide-header">
+        <div class="slide-icon">☕</div>
+        <div class="slide-meta">
+          <div class="badge b-concept">MOTIVATION</div>
+          <h2>Why WebFlux?</h2>
+          <p>Traditional servlet stacks struggle with high concurrency. WebFlux solves this with a non-blocking event-loop model.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">The C10K Problem — Serving 10,000+ Concurrent Connections</div>
+        <div class="grid-2" style="margin-bottom:0;">
+          <div>
+            <div style="font-size:12px;font-weight:700;color:var(--red);margin-bottom:8px;">😴 Spring MVC (Blocking)</div>
+            <div class="stream-box" style="font-size:12px;line-height:1.8;">
+              <div>Request A → <span style="color:var(--red)">Thread-1</span> → waiting for DB ···········→ response</div>
+              <div>Request B → <span style="color:var(--red)">Thread-2</span> → waiting for DB ···········→ response</div>
+              <div>Request C → <span style="color:var(--red)">Thread-3</span> → waiting for DB ···········→ response</div>
+              <div style="margin-top:8px;color:var(--muted);">Request N → ❌ no threads left → queue → timeout</div>
+            </div>
+            <ul class="bul" style="font-size:12.5px;">
+              <li>One thread tied up per in-flight request</li>
+              <li>Threads are expensive (~1MB stack each)</li>
+              <li>Thread pool exhausted under load → 503s</li>
+            </ul>
+          </div>
+          <div>
+            <div style="font-size:12px;font-weight:700;color:var(--green);margin-bottom:8px;">⚡ Spring WebFlux (Non-Blocking)</div>
+            <div class="stream-box" style="font-size:12px;line-height:1.8;">
+              <div>Request A → event loop → register DB call → <span style="color:var(--green)">free thread</span></div>
+              <div>Request B → event loop → register DB call → <span style="color:var(--green)">free thread</span></div>
+              <div>Request C → event loop → register DB call → <span style="color:var(--green)">free thread</span></div>
+              <div style="margin-top:8px;color:var(--green);">DB ready → resume pipeline → send response</div>
+            </div>
+            <ul class="bul" style="font-size:12.5px;">
+              <li>Few threads handle thousands of requests</li>
+              <li>Thread is freed while waiting for I/O</li>
+              <li>Scales to 10x+ concurrent connections</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">When to Use WebFlux</div>
+          <ul class="bul">
+            <li>I/O-bound workloads (DB, HTTP, queues)</li>
+            <li>High concurrency requirements</li>
+            <li>Streaming data (SSE, WebSocket)</li>
+            <li>Microservices calling many other services</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-title">When NOT to Use WebFlux</div>
+          <ul class="bul">
+            <li>CPU-bound work (reactive won't help)</li>
+            <li>Team will call blocking libraries anyway</li>
+            <li>Simple CRUD with low traffic</li>
+            <li>Codebase already in Spring MVC</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="callout pink">
+        <strong>Key rule:</strong> Never block inside a reactive pipeline. Calling <code>Thread.sleep()</code>, blocking JDBC, or any blocking I/O inside a <code>map()</code> will freeze the event loop and eliminate all performance benefits.
+      </div>
+
+      <div class="controls">
+        <span></span>
+        <span class="slide-counter">1 / 5</span>
+        <button class="ctrl primary" data-next>Next →</button>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         SLIDE 1 — Mono & Flux
+    ═══════════════════════════════════════════ -->
+    <section class="slide" id="slide-1">
+      <div class="slide-header">
+        <div class="slide-icon">⚛️</div>
+        <div class="slide-meta">
+          <div class="badge b-api">PROJECT REACTOR</div>
+          <h2>Mono &amp; Flux</h2>
+          <p>The two core types of Project Reactor — the reactive library powering Spring WebFlux.</p>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">Mono&lt;T&gt; — 0 or 1 Value</div>
+          <p style="font-size:13px;color:var(--muted);margin-bottom:12px;">Think of it as the reactive equivalent of a Promise or Optional.</p>
+          <div class="stream-box">
+            <div class="stream-row">
+              <span class="s-label">Mono(value)</span>
+              <div class="s-track">
+                <div class="s-line"></div>
+                <div class="s-events">
+                  <div class="s-gap"></div>
+                  <div class="s-dot sd-pink">T</div>
+                  <div class="s-gap"></div>
+                  <span class="s-end">|</span>
+                  <div class="s-spacer"></div>
+                </div>
+              </div>
+            </div>
+            <div class="stream-row">
+              <span class="s-label">Mono.empty()</span>
+              <div class="s-track">
+                <div class="s-line"></div>
+                <div class="s-events">
+                  <div class="s-gap"></div><div class="s-gap"></div>
+                  <span class="s-end">|</span>
+                  <div class="s-spacer"></div>
+                </div>
+              </div>
+            </div>
+            <div class="stream-row">
+              <span class="s-label">Mono.error()</span>
+              <div class="s-track">
+                <div class="s-line"></div>
+                <div class="s-events">
+                  <div class="s-gap"></div>
+                  <span class="s-err">✕</span>
+                  <div class="s-spacer"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="code-wrap">
+            <span class="code-label">Java</span>
+            <pre><code class="language-java">Mono.just("hello")          // one value
+Mono.empty()                // no value, just complete
+Mono.error(new RuntimeException("boom"))
+Mono.fromCallable(() -> dbRepository.findById(id))
+Mono.justOrEmpty(optional)  // from Optional&lt;T&gt;</code></pre>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">Flux&lt;T&gt; — 0 to N Values</div>
+          <p style="font-size:13px;color:var(--muted);margin-bottom:12px;">Think of it as the reactive equivalent of a Stream or Observable.</p>
+          <div class="stream-box">
+            <div class="stream-row">
+              <span class="s-label">Flux(values)</span>
+              <div class="s-track">
+                <div class="s-line"></div>
+                <div class="s-events">
+                  <div class="s-dot sd-green">A</div>
+                  <div class="s-dot sd-green">B</div>
+                  <div class="s-dot sd-green">C</div>
+                  <span class="s-end">|</span>
+                  <div class="s-spacer"></div>
+                </div>
+              </div>
+            </div>
+            <div class="stream-row">
+              <span class="s-label">Flux SSE</span>
+              <div class="s-track">
+                <div class="s-line"></div>
+                <div class="s-events">
+                  <div class="s-dot sd-amber">1</div>
+                  <div class="s-dot sd-amber">2</div>
+                  <div class="s-dot sd-amber">3</div>
+                  <div class="s-dot sd-amber">…</div>
+                  <div class="s-spacer"></div>
+                  <span class="s-arrow">──▶</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="code-wrap">
+            <span class="code-label">Java</span>
+            <pre><code class="language-java">Flux.just("a", "b", "c")
+Flux.fromIterable(list)
+Flux.range(1, 10)           // 1 through 10
+Flux.interval(Duration.ofSeconds(1)) // ticks every 1s
+Flux.defer(() -> repository.findAll()) // lazy</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout">
+        <strong>From RxJS?</strong> <code>Mono&lt;T&gt;</code> ≈ <code>Observable</code> that completes after one item. <code>Flux&lt;T&gt;</code> ≈ <code>Observable</code> that can emit many. Both are lazy cold publishers by default.
+      </div>
+
+      <div class="controls">
+        <button class="ctrl" data-prev>← Previous</button>
+        <span class="slide-counter">2 / 5</span>
+        <button class="ctrl primary" data-next>Next →</button>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         SLIDE 2 — REST API
+    ═══════════════════════════════════════════ -->
+    <section class="slide" id="slide-2">
+      <div class="slide-header">
+        <div class="slide-icon">🌐</div>
+        <div class="slide-meta">
+          <div class="badge b-api">REST API</div>
+          <h2>REST API — ProductController</h2>
+          <p>The actual controller from this project — showing how Mono and Flux map naturally to REST semantics.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">ProductController.java — from this project</div>
+        <div class="code-wrap">
+          <span class="code-label">Java · Spring WebFlux</span>
+          <pre><code class="language-java">@RestController
+@RequestMapping("/products")
+public class ProductController {
+
+    private final Map&lt;String, Product&gt; products = new ConcurrentHashMap&lt;&gt;(Map.of(
+        "p-100", new Product("p-100", "Keyboard", BigDecimal.valueOf(120), "hardware"),
+        "p-200", new Product("p-200", "Monitor",  BigDecimal.valueOf(899), "hardware"),
+        "p-300", new Product("p-300", "Reactive Spring", BigDecimal.valueOf(59), "books")
+    ));
+
+    // Mono&lt;T&gt; = 0 or 1 result  →  maps to: 200 OK or 404 Not Found
+    @GetMapping("/{id}")
+    public Mono&lt;Product&gt; getById(@PathVariable String id) {
+        return Mono.justOrEmpty(products.get(id));
+    }
+
+    // Flux&lt;T&gt; = 0..N results  →  returns a JSON array
+    @GetMapping
+    public Flux&lt;Product&gt; getAll() {
+        return Flux.fromIterable(products.values());
+    }
+
+    // Server-Sent Events — stream items to the client in real time
+    @GetMapping(value = "/stream",
+                produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public Flux&lt;Product&gt; streamProducts() {
+        return Flux.fromIterable(products.values())
+            .delayElements(Duration.ofMillis(500)); // emit one every 500ms
+    }
+
+    // Reactive request body — no blocking deserialization
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public Mono&lt;Product&gt; create(@RequestBody Mono&lt;Product&gt; body) {
+        return body.map(product -&gt; {
+            products.put(product.id(), product);
+            return product;
+        });
+    }
+}</code></pre>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">HTTP Method → Reactive Type</div>
+          <table class="ctable" style="margin-bottom:0;font-size:12.5px;">
+            <thead><tr><th>Endpoint</th><th>Return Type</th><th>Why</th></tr></thead>
+            <tbody>
+              <tr><td>GET /products/{id}</td><td><code>Mono&lt;T&gt;</code></td><td>0 or 1 result</td></tr>
+              <tr><td>GET /products</td><td><code>Flux&lt;T&gt;</code></td><td>0..N results</td></tr>
+              <tr><td>GET /products/stream</td><td><code>Flux&lt;T&gt;</code> SSE</td><td>Infinite stream</td></tr>
+              <tr><td>POST /products</td><td><code>Mono&lt;T&gt;</code></td><td>Created resource</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card">
+          <div class="card-title">Testing with StepVerifier</div>
+          <div class="code-wrap" style="margin-bottom:0;">
+            <span class="code-label">Java · JUnit</span>
+            <pre><code class="language-java">@Test
+void filtersEvenNumbersThenSquares() {
+    var result = Flux.range(1, 6)
+        .filter(n -&gt; n % 2 == 0)
+        .map(n -&gt; n * n);
+
+    StepVerifier.create(result)
+        .expectNext(4, 16, 36)
+        .verifyComplete();
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button class="ctrl" data-prev>← Previous</button>
+        <span class="slide-counter">3 / 5</span>
+        <button class="ctrl primary" data-next>Next →</button>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         SLIDE 3 — Operators & Error Handling
+    ═══════════════════════════════════════════ -->
+    <section class="slide" id="slide-3">
+      <div class="slide-header">
+        <div class="slide-icon">🔧</div>
+        <div class="slide-meta">
+          <div class="badge b-code">OPERATORS</div>
+          <h2>Operators &amp; Error Handling</h2>
+          <p>Project Reactor ships with the same operator model as RxJS — fluent, composable, testable.</p>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">Common Operators</div>
+          <div class="code-wrap">
+            <span class="code-label">Java</span>
+            <pre><code class="language-java">// map — synchronous transform (1:1)
+Flux.range(1, 5)
+    .map(n -&gt; n * n);   // 1, 4, 9, 16, 25
+
+// filter — keep matching elements
+Flux.range(1, 6)
+    .filter(n -&gt; n % 2 == 0);   // 2, 4, 6
+
+// flatMap — async 1:N (parallel)
+userIds.flatMap(id -&gt; fetchUser(id));
+
+// concatMap — async 1:N (sequential, ordered)
+userIds.concatMap(id -&gt; fetchUser(id));
+
+// zip — combine latest from two sources
+Mono.zip(namesMono, emailsMono,
+    (name, email) -&gt; name + " &lt;" + email + "&gt;");</code></pre>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">Error Handling</div>
+          <div class="code-wrap">
+            <span class="code-label">Java</span>
+            <pre><code class="language-java">// onErrorReturn — fallback value
+fetchProduct(id)
+    .onErrorReturn(Product.UNKNOWN);
+
+// onErrorResume — fallback Mono/Flux
+fetchProduct(id)
+    .onErrorResume(err -&gt; cache.get(id));
+
+// retry with backoff
+fetchProduct(id)
+    .retryWhen(Retry.backoff(3, Duration.ofSeconds(1)));
+
+// doOnError — side-effect (log), then rethrow
+fetchProduct(id)
+    .doOnError(err -&gt; log.error("Failed", err))
+    .onErrorReturn(Product.UNKNOWN);</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Real Pipeline — Combining Operators</div>
+        <div class="code-wrap">
+          <span class="code-label">Java · Spring WebFlux</span>
+          <pre><code class="language-java">// A realistic service method: fetch products by category, enrich with stock info
+public Flux&lt;ProductDetail&gt; getProductsWithStock(String category) {
+    return productRepository.findByCategory(category)          // Flux&lt;Product&gt;
+        .filter(p -&gt; p.price().compareTo(BigDecimal.ZERO) &gt; 0) // skip free items
+        .flatMap(product -&gt;                                     // parallel stock fetch
+            stockService.getStock(product.id())
+                .map(stock -&gt; new ProductDetail(product, stock))
+                .onErrorResume(err -&gt; {
+                    log.warn("Stock unavailable for {}", product.id());
+                    return Mono.just(new ProductDetail(product, Stock.UNKNOWN));
+                })
+        )
+        .take(50)                                              // limit results
+        .cache(Duration.ofSeconds(30));                        // cache for 30s
+}</code></pre>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button class="ctrl" data-prev>← Previous</button>
+        <span class="slide-counter">4 / 5</span>
+        <button class="ctrl primary" data-next>Next →</button>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         SLIDE 4 — Summary
+    ═══════════════════════════════════════════ -->
+    <section class="slide" id="slide-4">
+      <div class="slide-header">
+        <div class="slide-icon">🏁</div>
+        <div class="slide-meta">
+          <div class="badge b-summary">MODULE 03 COMPLETE</div>
+          <h2>Summary</h2>
+          <p>You now understand the full reactive stack — from design patterns to production WebFlux APIs.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">The Full Reactive Learning Path</div>
+        <div style="display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:8px;align-items:center;">
+          <div style="background:var(--panel);border:1px solid var(--line2);border-radius:10px;padding:12px;text-align:center;">
+            <div style="color:var(--green);font-weight:700;font-size:13px;margin-bottom:6px;">① Foundations</div>
+            <div style="font-size:11px;color:var(--muted);">Observer Pattern</div>
+            <div style="font-size:11px;color:var(--muted);">Iterator Pattern</div>
+            <div style="font-size:11px;color:var(--muted);">Pull vs Push</div>
+            <div style="font-size:11px;color:var(--muted);">Promise vs Observable</div>
+          </div>
+          <div style="color:var(--muted);font-size:20px;text-align:center;">▶</div>
+          <div style="background:var(--panel);border:1px solid var(--line2);border-radius:10px;padding:12px;text-align:center;">
+            <div style="color:var(--accent);font-weight:700;font-size:13px;margin-bottom:6px;">② RxJS</div>
+            <div style="font-size:11px;color:var(--muted);">Cold vs Hot</div>
+            <div style="font-size:11px;color:var(--muted);">Key operators</div>
+            <div style="font-size:11px;color:var(--muted);">switchMap etc.</div>
+            <div style="font-size:11px;color:var(--muted);">React Live Search</div>
+          </div>
+          <div style="color:var(--muted);font-size:20px;text-align:center;">▶</div>
+          <div style="background:var(--panel);border:1px solid var(--pink);border-radius:10px;padding:12px;text-align:center;">
+            <div style="color:var(--pink);font-weight:700;font-size:13px;margin-bottom:6px;">③ WebFlux ✓</div>
+            <div style="font-size:11px;color:var(--muted);">Non-blocking I/O</div>
+            <div style="font-size:11px;color:var(--muted);">Mono &amp; Flux</div>
+            <div style="font-size:11px;color:var(--muted);">REST API</div>
+            <div style="font-size:11px;color:var(--muted);">StepVerifier</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">WebFlux Key Takeaways</div>
+          <ul class="bul">
+            <li><strong>Why WebFlux</strong> — non-blocking I/O for high concurrency</li>
+            <li><strong>Mono&lt;T&gt;</strong> — 0 or 1 async value (like Promise)</li>
+            <li><strong>Flux&lt;T&gt;</strong> — 0..N async values (like Observable)</li>
+            <li><strong>REST mapping</strong> — Mono for single, Flux for list/stream</li>
+            <li><strong>Never block</strong> — calling blocking code breaks everything</li>
+            <li><strong>StepVerifier</strong> — test reactive pipelines synchronously</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-title">📚 Resources</div>
+          <ul class="bul">
+            <li><a href="https://projectreactor.io/docs" target="_blank" style="color:var(--pink)">projectreactor.io/docs</a></li>
+            <li><a href="https://spring.io/reactive" target="_blank" style="color:var(--pink)">spring.io/reactive</a></li>
+            <li><a href="https://reactivex.io" target="_blank" style="color:var(--accent)">reactivex.io — marble diagrams</a></li>
+            <li><a href="https://www.reactivemanifesto.org" target="_blank" style="color:var(--green)">reactivemanifesto.org</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button class="ctrl" data-prev>← Previous</button>
+        <span class="slide-counter">5 / 5</span>
+        <button class="ctrl" onclick="show(0)">↩ Back to Start</button>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+  const SLIDE_COUNT = 5;
+  const slides = [...document.querySelectorAll('.slide')];
+  const navBtns = [...document.querySelectorAll('nav button[data-slide]')];
+  let current = 0;
+
+  function show(index) {
+    current = Math.max(0, Math.min(index, SLIDE_COUNT - 1));
+    slides.forEach((s, i) => s.classList.toggle('active', i === current));
+    navBtns.forEach((b, i) => b.classList.toggle('active', i === current));
+    document.getElementById('progress').style.width = ((current + 1) / SLIDE_COUNT * 100) + '%';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  navBtns.forEach((btn, i) => btn.setAttribute('data-slide', i));
+  navBtns.forEach((btn) => btn.addEventListener('click', () => show(Number(btn.dataset.slide))));
+  document.querySelectorAll('[data-next]').forEach(b => b.addEventListener('click', () => show(current + 1)));
+  document.querySelectorAll('[data-prev]').forEach(b => b.addEventListener('click', () => show(current - 1)));
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') show(current + 1);
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   show(current - 1);
+  });
+
+  document.addEventListener('DOMContentLoaded', () => hljs.highlightAll());
+  show(0);
+</script>
+</body>
+</html>

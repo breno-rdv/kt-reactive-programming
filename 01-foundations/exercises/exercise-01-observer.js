@@ -7,12 +7,14 @@ class EventBus {
     // TODO: create a Set for the event if it does not exist.
     // TODO: add the listener.
     // TODO: return an unsubscribe function.
-    return () => {};
+    return () => {
+    };
   }
 
   unsubscribe(eventName, listener) {
     // TODO: remove the listener from the event Set.
     // TODO: optionally delete the event when empty.
+
   }
 
   emit(eventName, payload) {

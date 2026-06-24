@@ -1,16 +1,12 @@
 const range = {
   start: 1,
   end: 3,
-  [Symbol.iterator](){
+  (){
     let current = this.start;
     const end = this.end;
 
     return {
       next() {
-        if (current <= end) {
-          return { value: current++, done: false };
-        }
-        return { value: undefined, done: true };
       },
     };
   },

@@ -1,9 +1,3 @@
-// exercise-02-push-stream.js
-// Run with:
-// node 01-foundations/exercises/exercise-02-push-stream.js
-
-// Same boilerplate approach as the demos.
-
 class NumberStream {
   constructor(limit) {
     this.limit = limit;
