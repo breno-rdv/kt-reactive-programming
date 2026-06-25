@@ -32,7 +32,7 @@
     .aside-footer a { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 12px; text-decoration: none; padding: 8px 10px; border-radius: 8px; transition: background 0.15s; }
     .aside-footer a:hover { background: var(--line); color: var(--text); }
     main { padding: 40px 52px; overflow-y: auto; }
-    .slide { display: none; max-width: 860px; }
+    .slide { display: none; max-width: 860px; margin: 0 auto; }
     .slide.active { display: block; animation: fadeIn 0.2s ease; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
     .slide-header { display: flex; align-items: flex-start; gap: 16px; margin-bottom: 28px; }
@@ -84,7 +84,7 @@
     .callout strong { color: var(--accent); }
     .callout.green strong { color: var(--green); }
     .callout.amber strong { color: var(--amber); }
-    ul.bul { list-style: none; padding: 0; margin: 0; }
+    ul.bul { list-style: none; padding: 0; margin: 0 auto; width: fit-content; }
     ul.bul li { padding: 5px 0 5px 22px; position: relative; font-size: 13.5px; color: var(--text); line-height: 1.55; }
     ul.bul li::before { content: '▸'; position: absolute; left: 0; color: var(--accent); font-size: 11px; top: 7px; }
     .pill { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 12px; font-weight: 600; margin: 2px; }

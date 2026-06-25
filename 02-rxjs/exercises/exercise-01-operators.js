@@ -13,6 +13,7 @@ const numbers$ = from([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
 numbers$
   .pipe(
     // TODO: filter even numbers
+
     // TODO: map to squares
   )
   .subscribe(value => console.log('[task 1]', value));
